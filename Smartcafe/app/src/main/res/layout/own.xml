@@ -79,7 +79,7 @@
             android:layout_width="187dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="15dp"
-            android:text="Password"
+            android:text="Passwor"
             android:textColor="#3E2723"
             android:textStyle="bold" />
 
