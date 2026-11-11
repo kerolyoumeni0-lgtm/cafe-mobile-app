@@ -1,6 +1,7 @@
 
-<?xml version="1.0" encoding="utf-8"?>
+
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
@@ -8,7 +9,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="vertical"
         android:padding="28dp">
@@ -16,7 +17,6 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
             android:text="☕"
             android:textSize="55sp" />
 
@@ -30,7 +30,7 @@
 
         <TextView
             android:layout_width="wrap_content"
-            android:layout_height="8dp"
+            android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="35dp"
             android:text="Admin Login"
@@ -40,55 +40,45 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
             android:text="Email Address"
             android:textColor="#3E2723"
-            android:textSize="14sp"
             android:textStyle="bold" />
 
         <EditText
-            android:id="@+id/emailInput"
+            android:id="@+id/edtEmail"
             android:layout_width="match_parent"
             android:layout_height="55dp"
-            android:backgroundTint="#8D6E63"
             android:hint="Enter your email"
             android:inputType="textEmailAddress"
-            android:padding="14dp"
-            android:singleLine="true" />
+            android:padding="14dp" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:layout_marginBottom="8dp"
             android:text="Password"
             android:textColor="#3E2723"
-            android:textSize="14sp"
             android:textStyle="bold" />
 
         <EditText
-            android:id="@+id/passwordInput"
+            android:id="@+id/edtPassword"
             android:layout_width="match_parent"
             android:layout_height="55dp"
-            android:backgroundTint="#8D6E63"
             android:hint="Enter your password"
             android:inputType="textPassword"
-            android:padding="14dp"
-            android:singleLine="true" />
+            android:padding="14dp" />
 
         <Button
-            android:id="@+id/loginButton"
+            android:id="@+id/btnLogin"
             android:layout_width="match_parent"
             android:layout_height="55dp"
             android:layout_marginTop="30dp"
             android:backgroundTint="#5D4037"
             android:text="LOGIN"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:textColor="#FFFFFF" />
 
         <TextView
-            android:id="@+id/registerLink"
+            android:id="@+id/txtRegister"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="22dp"
@@ -99,5 +89,4 @@
             android:textSize="15sp" />
 
     </LinearLayout>
-
 </ScrollView>
