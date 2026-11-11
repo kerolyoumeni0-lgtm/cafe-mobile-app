@@ -6,7 +6,7 @@ plugins {
 android {
     namespace = "com.example.smartcafe"
     compileSdk {
-        version = release(36) {
+        version = release(37) {
             minorApiLevel = 1
         }
     }
@@ -44,8 +44,7 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
     // Firebase BoM
-    implementation(platform("com.google.firebase:firebase-bom:35.1.0"))
-
+    implementation(platform("com.google.firebase:firebase-bom:34.6.0"))
 // Firebase Authentication
     implementation("com.google.firebase:firebase-auth")
 }

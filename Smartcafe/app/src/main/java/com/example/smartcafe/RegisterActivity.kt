@@ -9,7 +9,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.userProfileChangeRequest
+
 
 class RegisterActivity : AppCompatActivity() {
 
@@ -17,12 +17,12 @@ class RegisterActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_register)
+        setContentView(R.layout.own)
 
         auth = FirebaseAuth.getInstance()
 
         val edtName = findViewById<EditText>(R.id.edtName)
-        val edtEmail = findViewById<EditText>(R.id.edtEmail)
+        val edtEmail = findViewById<EditText>(R.id.edtPassword)
         val edtPassword = findViewById<EditText>(R.id.edtPassword)
         val edtConfirmPassword =
             findViewById<EditText>(R.id.edtConfirmPassword)
@@ -93,24 +93,11 @@ class RegisterActivity : AppCompatActivity() {
 
                 if (task.isSuccessful) {
 
-                    val profileUpdates = userProfileChangeRequest {
-                        displayName = name
-                    }
-
-                    auth.currentUser?.updateProfile(profileUpdates)
-                        ?.addOnCompleteListener {
-
-                            Toast.makeText(
-                                this,
-                                "Account created successfully!",
-                                Toast.LENGTH_LONG
-                            ).show()
-
-                            startActivity(
-                                Intent(this, MainActivity::class.java)
-                            )
-                            finish()
-                        }
+                    auth.currentUser?.updateProfile(
+                        com.google.firebase.auth.UserProfileChangeRequest.Builder()
+                            .setDisplayName(name)
+                            .build()
+                    )
 
                 } else {
 
