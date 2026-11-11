@@ -1,9 +1,12 @@
 
+
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="#F8F7F3">
+    android:background="#F8F7F3"
+    tools:context=".RegisterActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -39,11 +42,10 @@
             android:textSize="20sp" />
 
         <!-- Display name -->
-
         <TextView
-            android:layout_width="173dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Display Name (Optional)"
+            android:text="Display Name"
             android:textColor="#3E2723"
             android:textStyle="bold" />
 
@@ -58,15 +60,17 @@
 
         <!-- Email -->
         <TextView
-            android:layout_width="191dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="15dp"
             android:text="Email Address"
             android:textColor="#3E2723"
             android:textStyle="bold" />
 
+        <!-- Password -->
+
         <EditText
-            android:id="@+id/edtPassword"
+            android:id="@+id/edtEmail"
             android:layout_width="match_parent"
             android:layout_height="55dp"
             android:hint="Enter your email"
@@ -74,9 +78,8 @@
             android:padding="14dp"
             android:singleLine="true" />
 
-        <!-- Password -->
         <TextView
-            android:layout_width="187dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="15dp"
             android:text="Password"
@@ -94,7 +97,7 @@
 
         <!-- Confirm password -->
         <TextView
-            android:layout_width="198dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="15dp"
             android:text="Confirm Password"

@@ -22,7 +22,7 @@ class RegisterActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
 
         val edtName = findViewById<EditText>(R.id.edtName)
-        val edtEmail = findViewById<EditText>(R.id.edtPassword)
+        val edtEmail = findViewById<EditText>(R.id.edtEmail)
         val edtPassword = findViewById<EditText>(R.id.edtPassword)
         val edtConfirmPassword =
             findViewById<EditText>(R.id.edtConfirmPassword)
@@ -107,6 +107,22 @@ class RegisterActivity : AppCompatActivity() {
                             ?: "Registration failed",
                         Toast.LENGTH_LONG
                     ).show()
+                }
+                if (task.isSuccessful) {
+
+                    auth.signOut()
+
+                    Toast.makeText(
+                        this,
+                        "Registration successful! Please log in.",
+                        Toast.LENGTH_LONG
+                    ).show()
+
+                    val intent = Intent(this, MainActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                            Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    startActivity(intent)
+                    finish()
                 }
             }
     }
