@@ -33,6 +33,7 @@ class DashboardActivity : AppCompatActivity() {
         val btnUpdateStatus = findViewById<Button>(R.id.btnUpdateStatus)
         val btnLogout = findViewById<Button>(R.id.btnLogout)
 
+
         val user = auth.currentUser
         val name = user?.displayName?.takeIf { it.isNotBlank() }
             ?: user?.email
@@ -41,13 +42,9 @@ class DashboardActivity : AppCompatActivity() {
         txtWelcome.text = "Welcome, $name!"
 
         btnManageMenu.setOnClickListener {
-            Toast.makeText(
-                this,
-                "Menu Management - Coming Next",
-                Toast.LENGTH_SHORT
-            ).show()
+            val intent = Intent(this, ManageMenuActivity::class.java)
+            startActivity(intent)
         }
-
         btnManageOrders.setOnClickListener {
             Toast.makeText(
                 this,

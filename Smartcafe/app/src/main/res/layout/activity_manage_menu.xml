@@ -1,0 +1,75 @@
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F8F7F3"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Page title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Manage Menu"
+            android:textColor="#3E2723"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
+        <!-- Description -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Manage your café food and drinks"
+            android:textColor="#777777"
+            android:textSize="14sp" />
+
+        <!-- Add menu item button -->
+        <Button
+            android:id="@+id/btnAddMenuItem"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:layout_marginTop="24dp"
+            android:backgroundTint="#795548"
+            android:text="+ Add New Item"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp" />
+
+        <!-- Menu items heading -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:text="Your Menu Items"
+            android:textColor="#3E2723"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <!-- Menu items will appear here -->
+        <LinearLayout
+            android:id="@+id/menuItemsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/txtEmptyMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="30dp"
+                android:text="No menu items yet. Add your first item!"
+                android:textColor="#888888"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>

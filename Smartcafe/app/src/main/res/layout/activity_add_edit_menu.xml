@@ -1,0 +1,137 @@
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F8F7F3"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Page title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add Menu Item"
+            android:textColor="#3E2723"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Enter the details of your food or drink"
+            android:textColor="#777777"
+            android:textSize="14sp" />
+
+        <!-- Item name -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Item Name"
+            android:textColor="#3E2723"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/edtItemName"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:hint="e.g. Cheeseburger"
+            android:inputType="textCapSentences"
+            android:padding="12dp" />
+
+        <!-- Description -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Description"
+            android:textColor="#3E2723"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/edtDescription"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:gravity="top"
+            android:hint="Describe the food or drink"
+            android:inputType="textMultiLine|textCapSentences"
+            android:padding="12dp" />
+
+        <!-- Price -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Price (£)"
+            android:textColor="#3E2723"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/edtPrice"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:hint="e.g. 6.50"
+            android:inputType="numberDecimal"
+            android:padding="12dp" />
+
+        <!-- Category -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Category"
+            android:textColor="#3E2723"
+            android:textStyle="bold" />
+
+        <Spinner
+            android:id="@+id/spinnerCategory"
+            android:layout_width="match_parent"
+            android:layout_height="55dp" />
+
+        <!-- Image selection -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Food Image"
+            android:textColor="#3E2723"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnSelectImage"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:backgroundTint="#795548"
+            android:text="Choose Image"
+            android:textColor="#FFFFFF" />
+
+        <!-- Availability -->
+        <Switch
+            android:id="@+id/switchAvailable"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:checked="true"
+            android:text="Item Available"
+            android:textColor="#3E2723" />
+
+        <!-- Save button -->
+        <Button
+            android:id="@+id/btnSaveMenuItem"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:layout_marginTop="28dp"
+            android:backgroundTint="#795548"
+            android:text="Save Menu Item"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+</ScrollView>
