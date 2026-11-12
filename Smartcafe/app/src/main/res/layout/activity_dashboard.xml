@@ -1,0 +1,90 @@
+
+
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F8F7F3"
+    android:fillViewport="true"
+    tools:context=".DashboardActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="☕ Smart Café"
+            android:textSize="30sp"
+            android:textStyle="bold"
+            android:textColor="#3E2723"
+            android:gravity="center" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Admin Dashboard"
+            android:textSize="21sp"
+            android:textColor="#795548"
+            android:gravity="center"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/txtWelcome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Welcome, Administrator!"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#3E2723"
+            android:layout_marginTop="35dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Manage your café operations below"
+            android:textColor="#795548"
+            android:layout_marginTop="8dp" />
+
+        <Button
+            android:id="@+id/btnManageMenu"
+            android:layout_width="match_parent"
+            android:layout_height="65dp"
+            android:layout_marginTop="35dp"
+            android:text="MANAGE MENU"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#5D4037" />
+
+        <Button
+            android:id="@+id/btnManageOrders"
+            android:layout_width="match_parent"
+            android:layout_height="65dp"
+            android:layout_marginTop="18dp"
+            android:text="MANAGE ORDERS"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#795548" />
+
+        <Button
+            android:id="@+id/btnUpdateStatus"
+            android:layout_width="match_parent"
+            android:layout_height="65dp"
+            android:layout_marginTop="18dp"
+            android:text="UPDATE ORDER STATUS"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#8D6E63" />
+
+        <Button
+            android:id="@+id/btnLogout"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:layout_marginTop="45dp"
+            android:text="LOGOUT"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#B71C1C" />
+
+    </LinearLayout>
+</ScrollView>
