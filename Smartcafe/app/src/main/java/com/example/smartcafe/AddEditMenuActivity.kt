@@ -12,14 +12,12 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
+
 
 class AddEditMenuActivity : AppCompatActivity() {
 
     private val db = FirebaseFirestore.getInstance()
-    private val storage = FirebaseStorage.getInstance()
 
-    private var imageUri: Uri? = null
 
     private lateinit var edtItemName: EditText
     private lateinit var edtDescription: EditText
@@ -29,13 +27,6 @@ class AddEditMenuActivity : AppCompatActivity() {
     private lateinit var btnSelectImage: Button
     private lateinit var btnSaveMenuItem: Button
 
-    private val imagePicker =
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            if (uri != null) {
-                imageUri = uri
-                btnSelectImage.text = "Image Selected"
-            }
-        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,7 +57,11 @@ class AddEditMenuActivity : AppCompatActivity() {
 
         // Open the phone's image picker
         btnSelectImage.setOnClickListener {
-            imagePicker.launch("image/*")
+            Toast.makeText(
+                this,
+                "Food images will be added later.",
+                Toast.LENGTH_SHORT
+            ).show()
         }
 
         // Save the menu item
@@ -74,6 +69,7 @@ class AddEditMenuActivity : AppCompatActivity() {
             saveMenuItem()
         }
     }
+
 
     private fun saveMenuItem() {
 
@@ -83,16 +79,13 @@ class AddEditMenuActivity : AppCompatActivity() {
         val category = spinnerCategory.selectedItem.toString()
         val available = switchAvailable.isChecked
 
-        // Validate the form
         if (name.isEmpty()) {
             edtItemName.error = "Enter the item name"
-            edtItemName.requestFocus()
             return
         }
 
         if (description.isEmpty()) {
             edtDescription.error = "Enter a description"
-            edtDescription.requestFocus()
             return
         }
 
@@ -100,54 +93,21 @@ class AddEditMenuActivity : AppCompatActivity() {
 
         if (price == null || price <= 0) {
             edtPrice.error = "Enter a valid price"
-            edtPrice.requestFocus()
             return
         }
 
         btnSaveMenuItem.isEnabled = false
         btnSaveMenuItem.text = "Saving..."
 
-        // Save without an image if none was selected
-        if (imageUri == null) {
-            saveToFirestore(
-                name, description, price,
-                category, available, ""
-            )
-            return
-        }
-
-        // Upload selected image to Firebase Storage
-        val imageRef = storage.reference
-            .child("menu_images/${System.currentTimeMillis()}.jpg")
-
-        imageRef.putFile(imageUri!!)
-            .continueWithTask { task ->
-                if (!task.isSuccessful) {
-                    throw task.exception
-                        ?: Exception("Image upload failed")
-                }
-                imageRef.downloadUrl
-            }
-            .addOnSuccessListener { downloadUri ->
-                saveToFirestore(
-                    name,
-                    description,
-                    price,
-                    category,
-                    available,
-                    downloadUri.toString()
-                )
-            }
-            .addOnFailureListener { error ->
-                btnSaveMenuItem.isEnabled = true
-                btnSaveMenuItem.text = "Save Menu Item"
-
-                Toast.makeText(
-                    this,
-                    "Image upload failed: ${error.localizedMessage}",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
+        // Save directly to Firestore without an image
+        saveToFirestore(
+            name,
+            description,
+            price,
+            category,
+            available,
+            ""
+        )
     }
 
     private fun saveToFirestore(

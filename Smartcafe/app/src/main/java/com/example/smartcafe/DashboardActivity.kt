@@ -46,13 +46,9 @@ class DashboardActivity : AppCompatActivity() {
             startActivity(intent)
         }
         btnManageOrders.setOnClickListener {
-            Toast.makeText(
-                this,
-                "Order Management - Coming Next",
-                Toast.LENGTH_SHORT
-            ).show()
+            val intent = Intent(this, ManageOrdersActivity::class.java)
+            startActivity(intent)
         }
-
         btnUpdateStatus.setOnClickListener {
             Toast.makeText(
                 this,

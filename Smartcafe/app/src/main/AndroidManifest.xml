@@ -26,6 +26,9 @@
         <activity
             android:name=".AddEditMenuActivity"
             android:exported="false" />
+        <activity
+            android:name=".ManageOrdersActivity"
+            android:exported="false" />
 
         <!-- Login screen -->
         <activity
