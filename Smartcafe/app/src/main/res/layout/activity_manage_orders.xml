@@ -37,6 +37,24 @@
             android:textSize="20sp"
             android:textStyle="bold" />
 
+        <EditText
+            android:id="@+id/edtSearchOrders"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Search by customer or order ID"
+            android:padding="12dp"
+            android:singleLine="true"
+            android:inputType="text"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="12dp" />
+
+        <Spinner
+            android:id="@+id/spinnerOrderFilter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp" />
+
+
         <LinearLayout
             android:id="@+id/ordersContainer"
             android:layout_width="match_parent"

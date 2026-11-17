@@ -1,7 +1,6 @@
 
 package com.example.smartcafe
 
-import android.net.Uri
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -9,15 +8,14 @@ import android.widget.EditText
 import android.widget.Spinner
 import android.widget.Switch
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.firestore.FirebaseFirestore
-
 
 class AddEditMenuActivity : AppCompatActivity() {
 
     private val db = FirebaseFirestore.getInstance()
 
+    private var itemId: String? = null
 
     private lateinit var edtItemName: EditText
     private lateinit var edtDescription: EditText
@@ -26,7 +24,6 @@ class AddEditMenuActivity : AppCompatActivity() {
     private lateinit var switchAvailable: Switch
     private lateinit var btnSelectImage: Button
     private lateinit var btnSaveMenuItem: Button
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,7 +37,6 @@ class AddEditMenuActivity : AppCompatActivity() {
         btnSelectImage = findViewById(R.id.btnSelectImage)
         btnSaveMenuItem = findViewById(R.id.btnSaveMenuItem)
 
-        // Set up the category dropdown
         val categories = arrayOf("Food", "Drinks", "Desserts")
 
         val adapter = ArrayAdapter(
@@ -55,7 +51,6 @@ class AddEditMenuActivity : AppCompatActivity() {
 
         spinnerCategory.adapter = adapter
 
-        // Open the phone's image picker
         btnSelectImage.setOnClickListener {
             Toast.makeText(
                 this,
@@ -64,12 +59,69 @@ class AddEditMenuActivity : AppCompatActivity() {
             ).show()
         }
 
-        // Save the menu item
+        // Check whether this screen was opened to edit an existing item.
+        itemId = intent.getStringExtra("itemId")
+
+        if (itemId != null) {
+            btnSaveMenuItem.text = "Update Menu Item"
+            loadMenuItem()
+        }
+
         btnSaveMenuItem.setOnClickListener {
             saveMenuItem()
         }
     }
 
+    private fun loadMenuItem() {
+        val id = itemId ?: return
+
+        db.collection("MenuItems")
+            .document(id)
+            .get()
+            .addOnSuccessListener { document ->
+
+                if (document.exists()) {
+                    edtItemName.setText(document.getString("name") ?: "")
+                    edtDescription.setText(
+                        document.getString("description") ?: ""
+                    )
+
+                    val price = document.getDouble("price")
+                    if (price != null) {
+                        edtPrice.setText(price.toString())
+                    }
+
+                    val category =
+                        document.getString("category") ?: "Food"
+
+                    val categoryPosition =
+                        (spinnerCategory.adapter as ArrayAdapter<String>)
+                            .getPosition(category)
+
+                    if (categoryPosition >= 0) {
+                        spinnerCategory.setSelection(categoryPosition)
+                    }
+
+                    switchAvailable.isChecked =
+                        document.getBoolean("available") ?: true
+
+                } else {
+                    Toast.makeText(
+                        this,
+                        "Menu item not found.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    finish()
+                }
+            }
+            .addOnFailureListener { error ->
+                Toast.makeText(
+                    this,
+                    "Could not load item: ${error.localizedMessage}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+    }
 
     private fun saveMenuItem() {
 
@@ -99,55 +151,61 @@ class AddEditMenuActivity : AppCompatActivity() {
         btnSaveMenuItem.isEnabled = false
         btnSaveMenuItem.text = "Saving..."
 
-        // Save directly to Firestore without an image
-        saveToFirestore(
-            name,
-            description,
-            price,
-            category,
-            available,
-            ""
-        )
-    }
-
-    private fun saveToFirestore(
-        name: String,
-        description: String,
-        price: Double,
-        category: String,
-        available: Boolean,
-        imageUrl: String
-    ) {
-
         val menuItem = hashMapOf(
             "name" to name,
             "description" to description,
             "price" to price,
             "category" to category,
             "available" to available,
-            "imageUrl" to imageUrl
+            "imageUrl" to ""
         )
 
-        db.collection("MenuItems")
-            .add(menuItem)
-            .addOnSuccessListener {
-                Toast.makeText(
-                    this,
-                    "Menu item saved successfully!",
-                    Toast.LENGTH_SHORT
-                ).show()
+        val id = itemId
 
-                finish()
-            }
-            .addOnFailureListener { error ->
-                btnSaveMenuItem.isEnabled = true
-                btnSaveMenuItem.text = "Save Menu Item"
+        if (id == null) {
+            // ADD a new menu item
+            db.collection("MenuItems")
+                .add(menuItem)
+                .addOnSuccessListener {
+                    Toast.makeText(
+                        this,
+                        "Menu item added successfully!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    finish()
+                }
+                .addOnFailureListener { error ->
+                    showSaveError(error)
+                }
 
-                Toast.makeText(
-                    this,
-                    "Could not save item: ${error.localizedMessage}",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
+        } else {
+            // UPDATE the existing menu item
+            db.collection("MenuItems")
+                .document(id)
+                .update(menuItem as Map<String, Any>)
+                .addOnSuccessListener {
+                    Toast.makeText(
+                        this,
+                        "Menu item updated successfully!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    finish()
+                }
+                .addOnFailureListener { error ->
+                    showSaveError(error)
+                }
+        }
+    }
+
+    private fun showSaveError(error: Exception) {
+        btnSaveMenuItem.isEnabled = true
+        btnSaveMenuItem.text =
+            if (itemId == null) "Save Menu Item" else "Update Menu Item"
+
+        Toast.makeText(
+            this,
+            "Could not save item: ${error.localizedMessage}",
+            Toast.LENGTH_LONG
+        ).show()
     }
 }

@@ -29,6 +29,12 @@
         <activity
             android:name=".ManageOrdersActivity"
             android:exported="false" />
+        <activity
+            android:name=".UpdateOrderStatusActivity"
+            android:exported="false" />
+        <activity
+            android:name=".CustomerFeedbackActivity"
+            android:exported="false" />
 
         <!-- Login screen -->
         <activity
