@@ -11,6 +11,7 @@ import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class MainActivity : AppCompatActivity() {
 
@@ -49,38 +50,79 @@ class MainActivity : AppCompatActivity() {
 
             } else {
 
-                // Check the registered account with Firebase
+
                 auth.signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(this) { task ->
+                    .addOnSuccessListener { result ->
 
-                        if (task.isSuccessful) {
+                        val userId = result.user?.uid
 
+                        if (userId == null) {
                             Toast.makeText(
                                 this,
-                                "Login successful!",
-                                Toast.LENGTH_SHORT
-                            ).show()
-
-                            val intent = Intent(this, DashboardActivity::class.java)
-                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or
-                                    Intent.FLAG_ACTIVITY_CLEAR_TASK
-
-                            startActivity(intent)
-                            finish()
-
-                            // Open the Admin Dashboard
-                            // We'll connect this once DashboardActivity exists.
-
-                        } else {
-
-                            Toast.makeText(
-                                this,
-                                task.exception?.localizedMessage
-                                    ?: "Login failed. Check your details.",
+                                "Could not verify your account.",
                                 Toast.LENGTH_LONG
                             ).show()
+                            return@addOnSuccessListener
                         }
+
+                        FirebaseFirestore.getInstance()
+                            .collection("Users")
+                            .document(userId)
+                            .get()
+                            .addOnSuccessListener { document ->
+
+                                val role = document.getString("role")
+
+                                if (role == "admin") {
+
+                                    Toast.makeText(
+                                        this,
+                                        "Admin login successful!",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+
+                                    val intent = Intent(
+                                        this,
+                                        DashboardActivity::class.java
+                                    )
+
+                                    intent.flags =
+                                        Intent.FLAG_ACTIVITY_NEW_TASK or
+                                                Intent.FLAG_ACTIVITY_CLEAR_TASK
+
+                                    startActivity(intent)
+
+                                } else {
+
+                                    FirebaseAuth.getInstance().signOut()
+
+                                    Toast.makeText(
+                                        this,
+                                        "Access denied. Admin account required.",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            }
+                            .addOnFailureListener { error ->
+
+                                FirebaseAuth.getInstance().signOut()
+
+                                Toast.makeText(
+                                    this,
+                                    "Could not verify admin role: ${error.message}",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
                     }
+                    .addOnFailureListener { error ->
+
+                        Toast.makeText(
+                            this,
+                            "Login failed: ${error.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+
             }
         }
     }

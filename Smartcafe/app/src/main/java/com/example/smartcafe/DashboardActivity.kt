@@ -50,11 +50,17 @@ class DashboardActivity : AppCompatActivity() {
             startActivity(intent)
         }
         btnUpdateStatus.setOnClickListener {
-            Toast.makeText(
+            val intent = Intent(
                 this,
-                "Update Order Status - Coming Next",
-                Toast.LENGTH_SHORT
-            ).show()
+                UpdateOrderStatusActivity::class.java
+            )
+            startActivity(intent)
+        }
+        val btnCustomerFeedback = findViewById<Button>(R.id.btnCustomerFeedback)
+
+        btnCustomerFeedback.setOnClickListener {
+            val intent = Intent(this, CustomerFeedbackActivity::class.java)
+            startActivity(intent)
         }
 
         btnLogout.setOnClickListener {

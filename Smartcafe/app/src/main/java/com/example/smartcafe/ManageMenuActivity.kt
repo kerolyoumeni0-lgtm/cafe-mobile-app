@@ -28,11 +28,9 @@ class ManageMenuActivity : AppCompatActivity() {
             findViewById<Button>(R.id.btnAddMenuItem)
 
         btnAddMenuItem.setOnClickListener {
-            val intent = Intent(
-                this,
-                AddEditMenuActivity::class.java
+            startActivity(
+                Intent(this, AddEditMenuActivity::class.java)
             )
-            startActivity(intent)
         }
     }
 
@@ -63,6 +61,7 @@ class ManageMenuActivity : AppCompatActivity() {
 
                 for (document in result) {
 
+                    val itemId = document.id
                     val name = document.getString("name") ?: "Unnamed item"
                     val description =
                         document.getString("description") ?: ""
@@ -72,12 +71,11 @@ class ManageMenuActivity : AppCompatActivity() {
                     val available =
                         document.getBoolean("available") ?: false
 
-                    val itemView = LinearLayout(this).apply {
+                    // Menu item card
+                    val itemCard = LinearLayout(this).apply {
                         orientation = LinearLayout.VERTICAL
                         setPadding(20, 20, 20, 20)
-                        setBackgroundColor(
-                            android.graphics.Color.WHITE
-                        )
+                        setBackgroundColor(android.graphics.Color.WHITE)
 
                         val params = LinearLayout.LayoutParams(
                             LinearLayout.LayoutParams.MATCH_PARENT,
@@ -87,46 +85,60 @@ class ManageMenuActivity : AppCompatActivity() {
                         layoutParams = params
                     }
 
-                    val itemName = TextView(this).apply {
+                    val txtName = TextView(this).apply {
                         text = name
                         textSize = 19f
-                        setTextColor(
-                            android.graphics.Color.rgb(62, 39, 35)
-                        )
                         setTypeface(null, android.graphics.Typeface.BOLD)
                     }
 
-                    val itemDescription = TextView(this).apply {
+                    val txtDescription = TextView(this).apply {
                         text = description
                         textSize = 14f
                     }
 
-                    val itemPrice = TextView(this).apply {
+                    val txtPrice = TextView(this).apply {
                         text = "£${"%.2f".format(price)}"
                         textSize = 16f
                     }
 
-                    val itemCategory = TextView(this).apply {
-                        text = "Category: $category"
+                    val txtAvailability = TextView(this).apply {
+                        text = if (available) "Available" else "Unavailable"
                         textSize = 14f
                     }
 
-                    val itemAvailability = TextView(this).apply {
-                        text = if (available) {
-                            "Available"
-                        } else {
-                            "Unavailable"
+                    val buttonRow = LinearLayout(this).apply {
+                        orientation = LinearLayout.HORIZONTAL
+                    }
+
+                    val btnEdit = Button(this).apply {
+                        text = "Edit"
+                        setOnClickListener {
+                            val intent = Intent(
+                                this@ManageMenuActivity,
+                                AddEditMenuActivity::class.java
+                            )
+                            intent.putExtra("itemId", itemId)
+                            startActivity(intent)
                         }
-                        textSize = 14f
                     }
 
-                    itemView.addView(itemName)
-                    itemView.addView(itemDescription)
-                    itemView.addView(itemPrice)
-                    itemView.addView(itemCategory)
-                    itemView.addView(itemAvailability)
+                    val btnDelete = Button(this).apply {
+                        text = "Delete"
+                        setOnClickListener {
+                            deleteMenuItem(itemId)
+                        }
+                    }
 
-                    menuItemsContainer.addView(itemView)
+                    buttonRow.addView(btnEdit)
+                    buttonRow.addView(btnDelete)
+
+                    itemCard.addView(txtName)
+                    itemCard.addView(txtDescription)
+                    itemCard.addView(txtPrice)
+                    itemCard.addView(txtAvailability)
+                    itemCard.addView(buttonRow)
+
+                    menuItemsContainer.addView(itemCard)
                 }
             }
             .addOnFailureListener { error ->
@@ -137,5 +149,27 @@ class ManageMenuActivity : AppCompatActivity() {
                 ).show()
             }
     }
-}
 
+    private fun deleteMenuItem(itemId: String) {
+
+        db.collection("MenuItems")
+            .document(itemId)
+            .delete()
+            .addOnSuccessListener {
+                Toast.makeText(
+                    this,
+                    "Menu item deleted successfully",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                loadMenuItems()
+            }
+            .addOnFailureListener { error ->
+                Toast.makeText(
+                    this,
+                    "Delete failed: ${error.localizedMessage}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+    }
+}
