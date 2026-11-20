@@ -15,6 +15,8 @@ import androidx.core.content.ContextCompat
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
+private var feedbackListener: ListenerRegistration? = null
+private var firstFeedbackSnapshot = true
 
 class DashboardActivity : AppCompatActivity() {
 
@@ -86,7 +88,12 @@ class DashboardActivity : AppCompatActivity() {
             val intent = Intent(this, CustomerFeedbackActivity::class.java)
             startActivity(intent)
         }
-
+        val btnSalesAnalytics =
+            findViewById<Button>(R.id.btnSalesAnalytics)
+        btnSalesAnalytics.setOnClickListener {
+            val intent = Intent(this, SalesAnalyticsActivity::class.java)
+            startActivity(intent)
+        }
         btnLogout.setOnClickListener {
             auth.signOut()
 
@@ -147,6 +154,45 @@ class DashboardActivity : AppCompatActivity() {
             }
     }
 
+    private fun listenForNewFeedback() {
+
+        feedbackListener = db.collection("feedback")
+            .addSnapshotListener { snapshots, error ->
+
+                if (error != null) {
+                    Toast.makeText(
+                        this,
+                        "Unable to monitor new feedback",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@addSnapshotListener
+                }
+
+                if (snapshots == null) return@addSnapshotListener
+
+                // Ignore existing feedback when listening starts.
+                if (firstFeedbackSnapshot) {
+                    firstFeedbackSnapshot = false
+                    return@addSnapshotListener
+                }
+
+                for (change in snapshots.documentChanges) {
+
+                    if (change.type ==
+                        com.google.firebase.firestore.DocumentChange.Type.ADDED
+                    ) {
+                        val customerName =
+                            change.document.getString("customerName")
+                                ?: "A customer"
+
+                        NotificationHelper(this)
+                            .showNewFeedbackNotification(customerName)
+                    }
+                }
+            }
+    }
+
+
     override fun onDestroy() {
         super.onDestroy()
 
@@ -158,6 +204,8 @@ class DashboardActivity : AppCompatActivity() {
         if (::db.isInitialized) {
             firstOrdersSnapshot = true
             listenForNewOrders()
+            firstFeedbackSnapshot = true
+            listenForNewFeedback()
         }
     }
 
@@ -166,6 +214,8 @@ class DashboardActivity : AppCompatActivity() {
 
         ordersListener?.remove()
         ordersListener = null
+        feedbackListener?.remove()
+        feedbackListener = null
     }
 
 }
