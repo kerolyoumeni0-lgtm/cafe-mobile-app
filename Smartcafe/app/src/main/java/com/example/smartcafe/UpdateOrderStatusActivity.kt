@@ -14,13 +14,18 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import android.os.CountDownTimer
+import android.widget.EditText
+import java.util.Date
 
 class UpdateOrderStatusActivity : AppCompatActivity() {
 
     private val db = FirebaseFirestore.getInstance()
+    private val activeTimers = mutableListOf<CountDownTimer>()
 
     private lateinit var ordersStatusContainer: LinearLayout
     private lateinit var txtEmptyStatus: TextView
+
 
     private val statuses = arrayOf(
         "Pending",
@@ -84,13 +89,16 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
 
                     val currentStatus =
                         document.getString("status") ?: "Pending"
+                    val preparationEndTime =
+                        document.getLong("preparationEndTime")
 
                     displayOrder(
                         orderId,
                         customerName,
                         customerEmail,
                         totalPrice,
-                        currentStatus
+                        currentStatus,
+                        preparationEndTime
                     )
                 }
             }
@@ -108,7 +116,8 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
         customerName: String,
         customerEmail: String,
         totalPrice: Double,
-        currentStatus: String
+        currentStatus: String,
+        preparationEndTime: Long?
     ) {
 
         val card = LinearLayout(this).apply {
@@ -143,6 +152,24 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
         val current = TextView(this).apply {
             text = "Current status: $currentStatus"
             textSize = 16f
+        }
+        val preparationTimeInput = EditText(this).apply {
+            hint = "Enter preparation time (minutes)"
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER
+            setSingleLine(true)
+        }
+        val startPreparingButton = Button(this).apply {
+            text = "Start Preparing"
+        }
+        val countdownText = TextView(this).apply {
+            text = "Preparation timer not started"
+            textSize = 18f
+            setTextColor(0xFF4E342E.toInt())
+        }
+
+        val readyButton = Button(this).apply {
+            text = "Mark as Ready"
+            visibility = View.GONE
         }
 
         val statusSpinner = Spinner(this)
@@ -200,6 +227,88 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
         card.addView(current)
         card.addView(statusSpinner)
         card.addView(updateButton)
+        card.addView(preparationTimeInput)
+        card.addView(startPreparingButton)
+        card.addView(countdownText)
+        card.addView(readyButton)
+        readyButton.setOnClickListener {
+            updateStatus(
+                orderId,
+                customerName,
+                customerEmail,
+                "Ready",
+                readyButton
+            )
+            startPreparingButton.setOnClickListener {
+
+                val minutes = preparationTimeInput.text.toString().toLongOrNull()
+
+                if (minutes == null || minutes <= 0) {
+                    Toast.makeText(
+                        this,
+                        "Please enter a valid preparation time.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    return@setOnClickListener
+                }
+
+                val endTime = System.currentTimeMillis() + (minutes * 60 * 1000)
+
+                startPreparingButton.isEnabled = false
+                startPreparingButton.text = "Starting..."
+
+                db.collection("orders")
+                    .document(orderId)
+                    .update(
+                        mapOf(
+                            "status" to "Preparing",
+                            "preparationEndTime" to endTime
+                        )
+                    )
+                    .addOnSuccessListener {
+
+                        NotificationHelper(this)
+                            .showOrderStatusNotification(orderId, "Preparing")
+
+                        if (customerEmail.isNotBlank()) {
+                            sendCustomerEmail(
+                                customerEmail,
+                                customerName,
+                                orderId,
+                                "Preparing"
+                            )
+                        }
+
+                        Toast.makeText(
+                            this,
+                            "Order is now being prepared!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        loadOrders()
+                    }
+                    .addOnFailureListener { error ->
+                        startPreparingButton.isEnabled = true
+                        startPreparingButton.text = "Start Preparing"
+
+                        Toast.makeText(
+                            this,
+                            "Could not start timer: ${error.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+            }
+
+            displayOrder(
+                orderId,
+                customerName,
+                customerEmail,
+                totalPrice,
+                currentStatus,
+                preparationEndTime
+            )
+        }
 
         val params = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
