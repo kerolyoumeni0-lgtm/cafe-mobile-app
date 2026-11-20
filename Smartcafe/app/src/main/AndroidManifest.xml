@@ -37,6 +37,9 @@
         <activity
             android:name=".CustomerFeedbackActivity"
             android:exported="false" />
+        <activity
+            android:name=".SalesAnalyticsActivity"
+            android:exported="false" />
 
         <!-- Login screen -->
         <activity

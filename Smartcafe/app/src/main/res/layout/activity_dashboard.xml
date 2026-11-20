@@ -77,6 +77,19 @@
             android:textColor="#FFFFFF"
             android:backgroundTint="#8D6E63" />
 
+
+        <Button
+            android:id="@+id/btnCustomerFeedback"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Customer Feedback"
+            android:layout_marginTop="12dp" />
+        <Button
+            android:id="@+id/btnSalesAnalytics"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sales &amp; Analytics"
+            android:layout_marginTop="12dp" />
         <Button
             android:id="@+id/btnLogout"
             android:layout_width="match_parent"
@@ -85,12 +98,6 @@
             android:text="LOGOUT"
             android:textColor="#FFFFFF"
             android:backgroundTint="#B71C1C" />
-        <Button
-            android:id="@+id/btnCustomerFeedback"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Customer Feedback"
-            android:layout_marginTop="12dp" />
 
     </LinearLayout>
 </ScrollView>

@@ -1,6 +1,8 @@
 
 package com.example.smartcafe
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
@@ -68,11 +70,13 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
 
                     val orderId = document.id
 
-                    // Support both field names while old data is being corrected.
                     val customerName =
                         document.getString("customerName")
                             ?: document.getString("customer_id")
                             ?: "Unknown customer"
+
+                    val customerEmail =
+                        document.getString("customerEmail") ?: ""
 
                     val totalPrice =
                         (document.get("totalPrice") as? Number)
@@ -84,6 +88,7 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
                     displayOrder(
                         orderId,
                         customerName,
+                        customerEmail,
                         totalPrice,
                         currentStatus
                     )
@@ -101,6 +106,7 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
     private fun displayOrder(
         orderId: String,
         customerName: String,
+        customerEmail: String,
         totalPrice: Double,
         currentStatus: String
     ) {
@@ -120,6 +126,13 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
         val customer = TextView(this).apply {
             text = "Customer: $customerName"
             textSize = 16f
+        }
+
+        val email = TextView(this).apply {
+            text = "Email: ${
+                customerEmail.ifBlank { "Not provided" }
+            }"
+            textSize = 14f
         }
 
         val price = TextView(this).apply {
@@ -158,7 +171,8 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
 
         updateButton.setOnClickListener {
 
-            val newStatus = statusSpinner.selectedItem.toString()
+            val newStatus =
+                statusSpinner.selectedItem.toString()
 
             if (newStatus == currentStatus) {
                 Toast.makeText(
@@ -166,14 +180,22 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
                     "Please select a different status.",
                     Toast.LENGTH_SHORT
                 ).show()
+
                 return@setOnClickListener
             }
 
-            updateStatus(orderId, newStatus, updateButton)
+            updateStatus(
+                orderId,
+                customerName,
+                customerEmail,
+                newStatus,
+                updateButton
+            )
         }
 
         card.addView(title)
         card.addView(customer)
+        card.addView(email)
         card.addView(price)
         card.addView(current)
         card.addView(statusSpinner)
@@ -191,6 +213,8 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
 
     private fun updateStatus(
         orderId: String,
+        customerName: String,
+        customerEmail: String,
         newStatus: String,
         button: Button
     ) {
@@ -209,6 +233,26 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
                     Toast.LENGTH_SHORT
                 ).show()
 
+                // Existing Android order notification
+                NotificationHelper(this)
+                    .showOrderStatusNotification(orderId, newStatus)
+
+                // Prepare customer email
+                if (customerEmail.isNotBlank()) {
+                    sendCustomerEmail(
+                        customerEmail,
+                        customerName,
+                        orderId,
+                        newStatus
+                    )
+                } else {
+                    Toast.makeText(
+                        this,
+                        "Order updated, but customer email is missing.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
                 loadOrders()
             }
             .addOnFailureListener { error ->
@@ -222,5 +266,64 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
                     Toast.LENGTH_LONG
                 ).show()
             }
+    }
+
+    private fun sendCustomerEmail(
+        customerEmail: String,
+        customerName: String,
+        orderId: String,
+        newStatus: String
+    ) {
+
+        if (!android.util.Patterns.EMAIL_ADDRESS
+                .matcher(customerEmail).matches()
+        ) {
+            Toast.makeText(
+                this,
+                "Customer email address is invalid.",
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+
+        val subject = "Smart Café - Order Status Update"
+
+        val message = """
+            Hello $customerName,
+
+            Your Smart Café order has been updated.
+
+            Order ID: $orderId
+            New status: $newStatus
+
+            Thank you for choosing Smart Café!
+
+            Smart Café Team
+        """.trimIndent()
+
+        val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse(
+                "mailto:${Uri.encode(customerEmail)}"
+            )
+
+            putExtra(Intent.EXTRA_EMAIL, arrayOf(customerEmail))
+            putExtra(Intent.EXTRA_SUBJECT, subject)
+            putExtra(Intent.EXTRA_TEXT, message)
+        }
+
+        try {
+            startActivity(
+                Intent.createChooser(
+                    emailIntent,
+                    "Send customer order update"
+                )
+            )
+        } catch (e: Exception) {
+            Toast.makeText(
+                this,
+                "No email application is available.",
+                Toast.LENGTH_LONG
+            ).show()
+        }
     }
 }
