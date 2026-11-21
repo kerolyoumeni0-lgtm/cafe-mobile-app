@@ -231,6 +231,8 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
         card.addView(startPreparingButton)
         card.addView(countdownText)
         card.addView(readyButton)
+
+// READY BUTTON
         readyButton.setOnClickListener {
             updateStatus(
                 orderId,
@@ -239,74 +241,82 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
                 "Ready",
                 readyButton
             )
-            startPreparingButton.setOnClickListener {
+        }
 
-                val minutes = preparationTimeInput.text.toString().toLongOrNull()
+// START PREPARING BUTTON
+        startPreparingButton.setOnClickListener {
 
-                if (minutes == null || minutes <= 0) {
+            val minutes = preparationTimeInput.text.toString().toLongOrNull()
+
+            if (minutes == null || minutes <= 0) {
+                Toast.makeText(
+                    this,
+                    "Please enter a valid preparation time.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
+            val endTime = System.currentTimeMillis() + (minutes * 60 * 1000)
+
+            startPreparingButton.isEnabled = false
+            startPreparingButton.text = "Starting..."
+
+            db.collection("orders")
+                .document(orderId)
+                .update(
+                    mapOf(
+                        "status" to "Preparing",
+                        "preparationEndTime" to endTime
+                    )
+                )
+                .addOnSuccessListener {
+
+                    NotificationHelper(this)
+                        .showOrderStatusNotification(orderId, "Preparing")
+
+                    if (customerEmail.isNotBlank()) {
+                        sendCustomerEmail(
+                            customerEmail,
+                            customerName,
+                            orderId,
+                            "Preparing"
+                        )
+                    }
+
                     Toast.makeText(
                         this,
-                        "Please enter a valid preparation time.",
+                        "Order is now being prepared!",
                         Toast.LENGTH_SHORT
                     ).show()
 
-                    return@setOnClickListener
+                    loadOrders()
                 }
+                .addOnFailureListener { error ->
 
-                val endTime = System.currentTimeMillis() + (minutes * 60 * 1000)
+                    startPreparingButton.isEnabled = true
+                    startPreparingButton.text = "Start Preparing"
 
-                startPreparingButton.isEnabled = false
-                startPreparingButton.text = "Starting..."
+                    Toast.makeText(
+                        this,
+                        "Could not start timer: ${error.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+        }
 
-                db.collection("orders")
-                    .document(orderId)
-                    .update(
-                        mapOf(
-                            "status" to "Preparing",
-                            "preparationEndTime" to endTime
-                        )
-                    )
-                    .addOnSuccessListener {
+// RESTORE TIMER FOR ORDERS ALREADY PREPARING
+        if (currentStatus == "Preparing" && preparationEndTime != null) {
 
-                        NotificationHelper(this)
-                            .showOrderStatusNotification(orderId, "Preparing")
+            preparationTimeInput.visibility = View.GONE
+            startPreparingButton.visibility = View.GONE
 
-                        if (customerEmail.isNotBlank()) {
-                            sendCustomerEmail(
-                                customerEmail,
-                                customerName,
-                                orderId,
-                                "Preparing"
-                            )
-                        }
-
-                        Toast.makeText(
-                            this,
-                            "Order is now being prepared!",
-                            Toast.LENGTH_SHORT
-                        ).show()
-
-                        loadOrders()
-                    }
-                    .addOnFailureListener { error ->
-                        startPreparingButton.isEnabled = true
-                        startPreparingButton.text = "Start Preparing"
-
-                        Toast.makeText(
-                            this,
-                            "Could not start timer: ${error.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-            }
-
-            displayOrder(
+            startCountdown(
                 orderId,
-                customerName,
-                customerEmail,
-                totalPrice,
-                currentStatus,
-                preparationEndTime
+                preparationEndTime,
+                countdownText,
+                readyButton,
+                startPreparingButton
             )
         }
 
@@ -319,7 +329,51 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
 
         ordersStatusContainer.addView(card, params)
     }
+    private fun startCountdown(
+        orderId: String,
+        endTime: Long,
+        countdownText: TextView,
+        readyButton: Button,
+        startPreparingButton: Button
+    ) {
+        val remainingTime = endTime - System.currentTimeMillis()
 
+        if (remainingTime <= 0) {
+            countdownText.text = "Preparation time is finished!"
+            readyButton.visibility = View.VISIBLE
+            startPreparingButton.visibility = View.GONE
+            return
+        }
+
+        val timer = object : CountDownTimer(remainingTime, 1000) {
+
+            override fun onTick(millisUntilFinished: Long) {
+                val minutes = millisUntilFinished / 60000
+                val seconds = (millisUntilFinished % 60000) / 1000
+
+                countdownText.text = String.format(
+                    "Time remaining: %02d:%02d",
+                    minutes,
+                    seconds
+                )
+            }
+
+            override fun onFinish() {
+                countdownText.text = "Time is up! Your order is ready to check."
+                readyButton.visibility = View.VISIBLE
+                startPreparingButton.visibility = View.GONE
+
+                NotificationHelper(this@UpdateOrderStatusActivity)
+                    .showOrderStatusNotification(
+                        orderId,
+                        "Preparation time finished"
+                    )
+            }
+        }
+
+        activeTimers.add(timer)
+        timer.start()
+    }
     private fun updateStatus(
         orderId: String,
         customerName: String,
