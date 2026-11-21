@@ -1,123 +1,239 @@
 
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F8F7F3"
-    android:padding="20dp">
+    android:fillViewport="true"
+    android:scrollbars="vertical"
+    android:overScrollMode="ifContentScrolls">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="20dp">
 
+        <!-- Header -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Sales &amp; Analytics"
-            android:textSize="26sp"
+            android:textSize="27sp"
             android:textStyle="bold"
-            android:textColor="#795548"
-            android:layout_marginBottom="20dp" />
+            android:textColor="#4E342E" />
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Total Sales"
-            android:textSize="16sp" />
-
-        <TextView
-            android:id="@+id/txtTotalSales"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="£0.00"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:textColor="#795548"
-            android:layout_marginBottom="20dp" />
+            android:text="Track your café performance"
+            android:textSize="14sp"
+            android:textColor="#8D7B70"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="22dp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Total Orders"
-            android:textSize="16sp" />
-
-        <TextView
-            android:id="@+id/txtTotalOrders"
+        <!-- Total Sales Card -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="0"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="20dp" />
+            android:orientation="vertical"
+            android:background="#795548"
+            android:padding="22dp"
+            android:elevation="4dp"
+            android:layout_marginBottom="18dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Completed Orders"
-            android:textSize="16sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TOTAL SALES"
+                android:textColor="#F5E9E2"
+                android:textSize="13sp"
+                android:textStyle="bold" />
 
+            <TextView
+                android:id="@+id/txtTotalSales"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="£0.00"
+                android:textSize="34sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:layout_marginTop="8dp" />
+        </LinearLayout>
+
+        <!-- Statistics -->
         <TextView
-            android:id="@+id/txtCompletedOrders"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="0"
-            android:textSize="24sp"
+            android:text="Performance Overview"
+            android:textSize="19sp"
             android:textStyle="bold"
-            android:layout_marginBottom="20dp" />
+            android:textColor="#4E342E"
+            android:layout_marginBottom="12dp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Average Order Value"
-            android:textSize="16sp" />
-
-        <TextView
-            android:id="@+id/txtAverageOrderValue"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="£0.00"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="#795548"
-            android:layout_marginBottom="25dp" />
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp">
 
+            <!-- Total Orders -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="115dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:background="#FFFFFF"
+                android:elevation="2dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Total Orders"
+                    android:textColor="#8D7B70"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/txtTotalOrders"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textSize="27sp"
+                    android:textStyle="bold"
+                    android:textColor="#4E342E"
+                    android:layout_marginTop="12dp" />
+            </LinearLayout>
+
+            <!-- Completed Orders -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="115dp"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:background="#FFFFFF"
+                android:elevation="2dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Completed Orders"
+                    android:textColor="#8D7B70"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/txtCompletedOrders"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textSize="27sp"
+                    android:textStyle="bold"
+                    android:textColor="#388E3C"
+                    android:layout_marginTop="12dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Average Order Value -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="18dp"
+            android:background="#FFFFFF"
+            android:elevation="2dp"
+            android:layout_marginBottom="25dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Average Order Value"
+                android:textSize="14sp"
+                android:textColor="#8D7B70" />
+
+            <TextView
+                android:id="@+id/txtAverageOrderValue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="£0.00"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="#795548"
+                android:layout_marginTop="8dp" />
+        </LinearLayout>
+
+        <!-- Popular Products -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Popular Products"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="#795548"
+            android:textColor="#4E342E"
             android:layout_marginBottom="12dp" />
-
 
         <LinearLayout
             android:id="@+id/topProductsContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" />
+            android:orientation="vertical"
+            android:padding="14dp"
+            android:background="#FFFFFF"
+            android:elevation="2dp" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:background="#FFFFFF"
+            android:elevation="3dp"
+            android:layout_marginBottom="20dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Weekly Sales Performance"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#4E342E"
+                android:layout_marginBottom="12dp" />
+
+            <LinearLayout
+                android:id="@+id/weeklySalesChart"
+                android:layout_width="match_parent"
+                android:layout_height="240dp"
+                android:gravity="bottom"
+                android:orientation="horizontal"
+                android:padding="8dp" />
+
+        </LinearLayout>
+
+        <!-- Recommendation -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Smart Product Recommendation"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="#795548"
+            android:textColor="#4E342E"
             android:layout_marginTop="25dp"
-            android:layout_marginBottom="10dp" />
+            android:layout_marginBottom="12dp" />
 
         <TextView
             android:id="@+id/txtRecommendation"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Analysing customer orders..."
-            android:textSize="16sp"
-            android:textColor="#795548"
-            android:background="#EFE8E2"
-            android:padding="16dp" />
+            android:textSize="15sp"
+            android:textColor="#4E342E"
+            android:background="#EFE5DC"
+            android:padding="18dp" />
 
-
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="20dp" />
 
     </LinearLayout>
-
 </ScrollView>
