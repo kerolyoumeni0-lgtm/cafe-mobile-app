@@ -1,0 +1,148 @@
+
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F8F7F3"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="☕ Smart Café"
+            android:textSize="30sp"
+            android:textStyle="bold"
+            android:textColor="#3E2723"
+            android:gravity="center"
+            android:layout_marginTop="20dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Administrator Policy"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#795548"
+            android:gravity="center"
+            android:layout_marginTop="25dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Purpose"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#3E2723"
+            android:layout_marginTop="30dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="This policy explains the responsibilities of administrators when using the Smart Café management application."
+            android:textSize="15sp"
+            android:textColor="#5D4037"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="1. Data Protection"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            android:textColor="#3E2723"
+            android:layout_marginTop="22dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Administrators must keep customer information confidential and must not share it with unauthorised individuals."
+            android:textSize="15sp"
+            android:textColor="#5D4037"
+            android:layout_marginTop="6dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="2. Account Security"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            android:textColor="#3E2723"
+            android:layout_marginTop="18dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Administrators must protect their login credentials and must not share their passwords."
+            android:textSize="15sp"
+            android:textColor="#5D4037"
+            android:layout_marginTop="6dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="3. Order Management"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            android:textColor="#3E2723"
+            android:layout_marginTop="18dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Administrators must manage customer orders responsibly and update order statuses accurately."
+            android:textSize="15sp"
+            android:textColor="#5D4037"
+            android:layout_marginTop="6dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="4. Authorised Access"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            android:textColor="#3E2723"
+            android:layout_marginTop="18dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="The application must only be used for authorised café management activities."
+            android:textSize="15sp"
+            android:textColor="#5D4037"
+            android:layout_marginTop="6dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="5. Information Accuracy"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            android:textColor="#3E2723"
+            android:layout_marginTop="18dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Administrators must handle menu, order and sales information accurately and responsibly."
+            android:textSize="15sp"
+            android:textColor="#5D4037"
+            android:layout_marginTop="6dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="By using Smart Café, administrators are expected to follow these responsibilities."
+            android:textSize="14sp"
+            android:textStyle="italic"
+            android:textColor="#795548"
+            android:layout_marginTop="25dp"
+            android:layout_marginBottom="25dp" />
+
+    </LinearLayout>
+</ScrollView>
