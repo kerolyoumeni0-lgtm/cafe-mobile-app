@@ -15,8 +15,7 @@ import androidx.core.content.ContextCompat
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
-private var feedbackListener: ListenerRegistration? = null
-private var firstFeedbackSnapshot = true
+
 
 class DashboardActivity : AppCompatActivity() {
 
@@ -24,14 +23,24 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var db: FirebaseFirestore
     private var ordersListener: ListenerRegistration? = null
     private var firstOrdersSnapshot = true
+    // Dashboard order statistics
+    private lateinit var txtTotalOrdersHome: TextView
+    private lateinit var txtPendingOrdersHome: TextView
+    // Dashboard sales and completed order statistics
+    private lateinit var txtTotalSalesHome: TextView
+    private lateinit var txtCompletedOrdersHome: TextView
+
+    private var feedbackListener: ListenerRegistration? = null
+    private var firstFeedbackSnapshot = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+// Initialise Firebase Authentication and Cloud Firestore
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
-        // Only signed-in users can access this screen
+// Check whether an administrator is currently signed in
+// If nobody is signed in, redirect to the login screen
         if (auth.currentUser == null) {
             startActivity(Intent(this, MainActivity::class.java))
             finish()
@@ -39,6 +48,11 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         setContentView(R.layout.activity_dashboard)
+        // Connect the dashboard statistics cards to their XML views
+        txtTotalOrdersHome = findViewById(R.id.txtTotalOrdersHome)
+        txtPendingOrdersHome = findViewById(R.id.txtPendingOrdersHome)
+        txtTotalSalesHome = findViewById(R.id.txtTotalSalesHome)
+        txtCompletedOrdersHome = findViewById(R.id.txtCompletedOrdersHome)
 
         val txtWelcome = findViewById<TextView>(R.id.txtWelcome)
         val btnManageMenu = findViewById<Button>(R.id.btnManageMenu)
@@ -134,6 +148,42 @@ class DashboardActivity : AppCompatActivity() {
                 }
 
                 if (snapshots == null) return@addSnapshotListener
+                // Update the dashboard order statistics using Firestore data
+                val totalOrders = snapshots.size()
+
+                val pendingOrders = snapshots.documents.count { document ->
+                    document.getString("status").equals("Pending", ignoreCase = true)
+                }
+                // Count completed orders and calculate their total sales
+                var completedOrders = 0
+                var totalSales = 0.0
+
+                for (document in snapshots.documents) {
+
+                    val status = document.getString("status") ?: ""
+
+                    if (status.equals("Completed", ignoreCase = true)) {
+
+                        completedOrders++
+
+                        val price = (document.get("totalPrice") as? Number)?.toDouble()
+
+                        if (price != null && price.isFinite() && price >= 0) {
+                            totalSales += price
+                        }
+                    }
+                }
+
+// Display the latest statistics on the dashboard
+                txtTotalOrdersHome.text = totalOrders.toString()
+                txtPendingOrdersHome.text = pendingOrders.toString()
+                // Display completed orders and total sales
+                txtCompletedOrdersHome.text = completedOrders.toString()
+                txtTotalSalesHome.text = String.format(
+                    java.util.Locale.UK,
+                    "£%.2f",
+                    totalSales
+                )
 
                 if (firstOrdersSnapshot) {
                     firstOrdersSnapshot = false
