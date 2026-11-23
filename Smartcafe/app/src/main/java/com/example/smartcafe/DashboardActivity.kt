@@ -15,7 +15,10 @@ import androidx.core.content.ContextCompat
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
+// Stores the Firebase feedback listener so it can be removed later
 private var feedbackListener: ListenerRegistration? = null
+// Identifies the first feedback snapshot to avoid sending notifications
+// for feedback that already existed before monitoring started.
 private var firstFeedbackSnapshot = true
 
 class DashboardActivity : AppCompatActivity() {
@@ -24,7 +27,7 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var db: FirebaseFirestore
     private var ordersListener: ListenerRegistration? = null
     private var firstOrdersSnapshot = true
-
+    // Called when the dashboard screen is first created.
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -39,12 +42,13 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         setContentView(R.layout.activity_dashboard)
-
+// Connect the XML views to their Kotlin variables.
         val txtWelcome = findViewById<TextView>(R.id.txtWelcome)
         val btnManageMenu = findViewById<Button>(R.id.btnManageMenu)
         val btnManageOrders = findViewById<Button>(R.id.btnManageOrders)
         val btnUpdateStatus = findViewById<Button>(R.id.btnUpdateStatus)
         val btnLogout = findViewById<Button>(R.id.btnLogout)
+        // Create the notification channel required for notifications.
         NotificationHelper(this).createNotificationChannel()
 
 
@@ -66,7 +70,7 @@ class DashboardActivity : AppCompatActivity() {
             ?: "Administrator"
 
         txtWelcome.text = "Welcome, $name!"
-
+// Opens the menu management screen.
         btnManageMenu.setOnClickListener {
             val intent = Intent(this, ManageMenuActivity::class.java)
             startActivity(intent)
