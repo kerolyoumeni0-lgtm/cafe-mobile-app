@@ -94,6 +94,7 @@ class MainActivity : AppCompatActivity() {
                             return@addOnSuccessListener
                         }
 //kerol
+                        //jamla
                         // Check the user's administrator role in Firestore.
                         FirebaseFirestore.getInstance()
                             .collection("Users")
