@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -12,19 +13,25 @@ import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.firebase.firestore.FirebaseFirestore
+import androidx.lifecycle.ViewModelProvider
+import com.example.smartcafe.models.Order
+import com.example.smartcafe.viewmodels.OrderViewModel
 
 class ManageOrdersActivity : AppCompatActivity() {
 
-    private val db = FirebaseFirestore.getInstance()
+    // Connect the Activity to the OrderViewModel.
+    private lateinit var orderViewModel: OrderViewModel
 
+    // Declare the interface components.
     private lateinit var ordersContainer: LinearLayout
     private lateinit var txtEmptyOrders: TextView
     private lateinit var edtSearchOrders: EditText
     private lateinit var spinnerOrderFilter: Spinner
 
-    private val orderList = mutableListOf<Order>()
+    // Stores the orders displayed by the Activity.
+    private var orderList = mutableListOf<Order>()
 
+    // Available order status filters.
     private val filterOptions = arrayOf(
         "All Statuses",
         "Pending",
@@ -33,18 +40,15 @@ class ManageOrdersActivity : AppCompatActivity() {
         "Completed"
     )
 
-    data class Order(
-        val id: String,
-        val customerName: String,
-        val items: String,
-        val totalPrice: Double,
-        val status: String
-    )
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_manage_orders)
 
+        // Initialise the ViewModel.
+        orderViewModel =
+            ViewModelProvider(this)[OrderViewModel::class.java]
+
+        // Connect Kotlin variables to XML views.
         ordersContainer = findViewById(R.id.ordersContainer)
         txtEmptyOrders = findViewById(R.id.txtEmptyOrders)
         edtSearchOrders = findViewById(R.id.edtSearchOrders)
@@ -52,9 +56,33 @@ class ManageOrdersActivity : AppCompatActivity() {
 
         setupFilter()
         setupSearch()
+
+        // Observe orders returned by the ViewModel.
+        orderViewModel.orders.observe(this) { orders ->
+
+            orderList.clear()
+            orderList.addAll(orders)
+
+            displayFilteredOrders()
+        }
+
+        // Observe error messages from the ViewModel.
+        orderViewModel.message.observe(this) { message ->
+
+            if (!message.isNullOrEmpty()) {
+                Toast.makeText(
+                    this,
+                    message,
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+
+        // Load orders through the ViewModel.
         loadOrders()
     }
 
+    // Set up the order status dropdown.
     private fun setupFilter() {
 
         val adapter = ArrayAdapter(
@@ -70,10 +98,10 @@ class ManageOrdersActivity : AppCompatActivity() {
         spinnerOrderFilter.adapter = adapter
 
         spinnerOrderFilter.onItemSelectedListener =
-            object : android.widget.AdapterView.OnItemSelectedListener {
+            object : AdapterView.OnItemSelectedListener {
 
                 override fun onItemSelected(
-                    parent: android.widget.AdapterView<*>?,
+                    parent: AdapterView<*>?,
                     view: View?,
                     position: Int,
                     id: Long
@@ -82,84 +110,44 @@ class ManageOrdersActivity : AppCompatActivity() {
                 }
 
                 override fun onNothingSelected(
-                    parent: android.widget.AdapterView<*>?
+                    parent: AdapterView<*>?
                 ) {}
             }
     }
 
+    // Set up the order search field.
     private fun setupSearch() {
 
-        edtSearchOrders.addTextChangedListener(object : TextWatcher {
+        edtSearchOrders.addTextChangedListener(
+            object : TextWatcher {
 
-            override fun beforeTextChanged(
-                s: CharSequence?,
-                start: Int,
-                count: Int,
-                after: Int
-            ) {}
+                override fun beforeTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    count: Int,
+                    after: Int
+                ) {}
 
-            override fun onTextChanged(
-                s: CharSequence?,
-                start: Int,
-                before: Int,
-                count: Int
-            ) {
-                displayFilteredOrders()
-            }
-
-            override fun afterTextChanged(s: Editable?) {}
-        })
-    }
-
-    private fun loadOrders() {
-
-        db.collection("orders")
-            .get()
-            .addOnSuccessListener { result ->
-
-                orderList.clear()
-
-                for (document in result) {
-
-                    val customerName =
-                        document.getString("customerName")
-                            ?: document.getString("customer_id")
-                            ?: "Unknown customer"
-
-                    val items =
-                        document.getString("items")
-                            ?: "Not provided"
-
-                    val totalPrice =
-                        (document.get("totalPrice") as? Number)
-                            ?.toDouble() ?: 0.0
-
-                    val status =
-                        document.getString("status") ?: "Pending"
-
-                    orderList.add(
-                        Order(
-                            document.id,
-                            customerName,
-                            items,
-                            totalPrice,
-                            status
-                        )
-                    )
+                override fun onTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    before: Int,
+                    count: Int
+                ) {
+                    displayFilteredOrders()
                 }
 
-                displayFilteredOrders()
+                override fun afterTextChanged(s: Editable?) {}
             }
-            .addOnFailureListener { error ->
-
-                Toast.makeText(
-                    this,
-                    "Could not load orders: ${error.message}",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
+        )
     }
 
+    // Ask the ViewModel to retrieve orders.
+    private fun loadOrders() {
+        orderViewModel.loadOrders()
+    }
+
+    // Search and filter the retrieved orders.
     private fun displayFilteredOrders() {
 
         ordersContainer.removeAllViews()
@@ -193,6 +181,7 @@ class ManageOrdersActivity : AppCompatActivity() {
             matchesSearch && matchesStatus
         }
 
+        // Show an appropriate message if no orders match.
         if (filteredOrders.isEmpty()) {
 
             txtEmptyOrders.visibility = View.VISIBLE
@@ -209,11 +198,13 @@ class ManageOrdersActivity : AppCompatActivity() {
 
         txtEmptyOrders.visibility = View.GONE
 
+        // Display each filtered order.
         for (order in filteredOrders) {
             displayOrder(order)
         }
     }
 
+    // Create and display an individual order card.
     private fun displayOrder(order: Order) {
 
         val card = LinearLayout(this).apply {
@@ -249,12 +240,14 @@ class ManageOrdersActivity : AppCompatActivity() {
             setTextColor(0xFF795548.toInt())
         }
 
+        // Add order information to the card.
         card.addView(title)
         card.addView(customer)
         card.addView(items)
         card.addView(price)
         card.addView(status)
 
+        // Set card margins.
         val params = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.WRAP_CONTENT

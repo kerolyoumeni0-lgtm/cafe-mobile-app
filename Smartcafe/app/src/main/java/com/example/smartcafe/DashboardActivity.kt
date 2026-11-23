@@ -12,29 +12,22 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
+import com.example.smartcafe.viewmodels.DashboardViewModel
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ListenerRegistration
-// Stores the Firebase feedback listener so it can be removed later
-private var feedbackListener: ListenerRegistration? = null
-// Identifies the first feedback snapshot to avoid sending notifications
-// for feedback that already existed before monitoring started.
-private var firstFeedbackSnapshot = true
 
 class DashboardActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
-    private lateinit var db: FirebaseFirestore
-    private var ordersListener: ListenerRegistration? = null
-    private var firstOrdersSnapshot = true
+    private lateinit var dashboardViewModel: DashboardViewModel
+
     // Called when the dashboard screen is first created.
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         auth = FirebaseAuth.getInstance()
-        db = FirebaseFirestore.getInstance()
 
-        // Only signed-in users can access this screen
+        // Only signed-in users can access this screen.
         if (auth.currentUser == null) {
             startActivity(Intent(this, MainActivity::class.java))
             finish()
@@ -42,16 +35,26 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         setContentView(R.layout.activity_dashboard)
-// Connect the XML views to their Kotlin variables.
+
+        // Connect the Activity to the DashboardViewModel.
+        dashboardViewModel = ViewModelProvider(this)
+            .get(DashboardViewModel::class.java)
+
+        // Connect the XML views to their Kotlin variables.
         val txtWelcome = findViewById<TextView>(R.id.txtWelcome)
         val btnManageMenu = findViewById<Button>(R.id.btnManageMenu)
         val btnManageOrders = findViewById<Button>(R.id.btnManageOrders)
         val btnUpdateStatus = findViewById<Button>(R.id.btnUpdateStatus)
         val btnLogout = findViewById<Button>(R.id.btnLogout)
-        // Create the notification channel required for notifications.
+        val btnCustomerFeedback =
+            findViewById<Button>(R.id.btnCustomerFeedback)
+        val btnSalesAnalytics =
+            findViewById<Button>(R.id.btnSalesAnalytics)
+
+        // Create the notification channel.
         NotificationHelper(this).createNotificationChannel()
 
-
+        // Request notification permission on Android 13 and above.
         if (Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(
                 this,
@@ -63,45 +66,96 @@ class DashboardActivity : AppCompatActivity() {
             )
         }
 
-
+        // Display the administrator's name.
         val user = auth.currentUser
-        val name = user?.displayName?.takeIf { it.isNotBlank() }
+
+        val name = user?.displayName
+            ?.takeIf { it.isNotBlank() }
             ?: user?.email
             ?: "Administrator"
 
         txtWelcome.text = "Welcome, $name!"
-// Opens the menu management screen.
-        btnManageMenu.setOnClickListener {
-            val intent = Intent(this, ManageMenuActivity::class.java)
-            startActivity(intent)
-        }
-        btnManageOrders.setOnClickListener {
-            val intent = Intent(this, ManageOrdersActivity::class.java)
-            startActivity(intent)
-        }
-        btnUpdateStatus.setOnClickListener {
-            val intent = Intent(
-                this,
-                UpdateOrderStatusActivity::class.java
-            )
-            startActivity(intent)
-        }
-        val btnCustomerFeedback = findViewById<Button>(R.id.btnCustomerFeedback)
 
+        // Observe newly created orders.
+        dashboardViewModel.newOrder.observe(this) { orderId ->
+
+            if (orderId != null) {
+
+                NotificationHelper(this)
+                    .showNewOrderNotification(orderId)
+
+                // Clear the event after displaying the notification.
+                dashboardViewModel.clearNewOrderEvent()
+            }
+        }
+
+        // Observe newly submitted customer feedback.
+        dashboardViewModel.newFeedback.observe(this) { customerName ->
+
+            if (customerName != null) {
+
+                NotificationHelper(this)
+                    .showNewFeedbackNotification(customerName)
+
+                // Clear the event after displaying the notification.
+                dashboardViewModel.clearNewFeedbackEvent()
+            }
+        }
+
+        // Observe Firebase monitoring errors.
+        dashboardViewModel.message.observe(this) { message ->
+
+            if (!message.isNullOrEmpty()) {
+                Toast.makeText(
+                    this,
+                    message,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
+        // Open the menu management screen.
+        btnManageMenu.setOnClickListener {
+            startActivity(
+                Intent(this, ManageMenuActivity::class.java)
+            )
+        }
+
+        // Open the order management screen.
+        btnManageOrders.setOnClickListener {
+            startActivity(
+                Intent(this, ManageOrdersActivity::class.java)
+            )
+        }
+
+        // Open the order status screen.
+        btnUpdateStatus.setOnClickListener {
+            startActivity(
+                Intent(this, UpdateOrderStatusActivity::class.java)
+            )
+        }
+
+        // Open the customer feedback screen.
         btnCustomerFeedback.setOnClickListener {
-            val intent = Intent(this, CustomerFeedbackActivity::class.java)
-            startActivity(intent)
+            startActivity(
+                Intent(this, CustomerFeedbackActivity::class.java)
+            )
         }
-        val btnSalesAnalytics =
-            findViewById<Button>(R.id.btnSalesAnalytics)
+
+        // Open the sales analytics screen.
         btnSalesAnalytics.setOnClickListener {
-            val intent = Intent(this, SalesAnalyticsActivity::class.java)
-            startActivity(intent)
+            startActivity(
+                Intent(this, SalesAnalyticsActivity::class.java)
+            )
         }
+
+        // Log out the administrator.
         btnLogout.setOnClickListener {
+
             auth.signOut()
 
             val intent = Intent(this, MainActivity::class.java)
+
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or
                     Intent.FLAG_ACTIVITY_CLEAR_TASK
 
@@ -109,10 +163,13 @@ class DashboardActivity : AppCompatActivity() {
             finish()
         }
     }
+
+    // Request permission to display Android notifications.
     private val requestNotificationPermission =
         registerForActivityResult(
             ActivityResultContracts.RequestPermission()
         ) { isGranted ->
+
             if (isGranted) {
                 Toast.makeText(
                     this,
@@ -122,104 +179,22 @@ class DashboardActivity : AppCompatActivity() {
             }
         }
 
-
-    private fun listenForNewOrders() {
-
-        ordersListener = db.collection("orders")
-            .addSnapshotListener { snapshots, error ->
-
-                if (error != null) {
-                    Toast.makeText(
-                        this,
-                        "Unable to monitor new orders",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    return@addSnapshotListener
-                }
-
-                if (snapshots == null) return@addSnapshotListener
-
-                if (firstOrdersSnapshot) {
-                    firstOrdersSnapshot = false
-                    return@addSnapshotListener
-                }
-
-                for (change in snapshots.documentChanges) {
-
-                    if (change.type ==
-                        com.google.firebase.firestore.DocumentChange.Type.ADDED
-                    ) {
-                        val orderId = change.document.id
-
-                        NotificationHelper(this)
-                            .showNewOrderNotification(orderId)
-                    }
-                }
-            }
-    }
-
-    private fun listenForNewFeedback() {
-
-        feedbackListener = db.collection("feedback")
-            .addSnapshotListener { snapshots, error ->
-
-                if (error != null) {
-                    Toast.makeText(
-                        this,
-                        "Unable to monitor new feedback",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    return@addSnapshotListener
-                }
-
-                if (snapshots == null) return@addSnapshotListener
-
-                // Ignore existing feedback when listening starts.
-                if (firstFeedbackSnapshot) {
-                    firstFeedbackSnapshot = false
-                    return@addSnapshotListener
-                }
-
-                for (change in snapshots.documentChanges) {
-
-                    if (change.type ==
-                        com.google.firebase.firestore.DocumentChange.Type.ADDED
-                    ) {
-                        val customerName =
-                            change.document.getString("customerName")
-                                ?: "A customer"
-
-                        NotificationHelper(this)
-                            .showNewFeedbackNotification(customerName)
-                    }
-                }
-            }
-    }
-
-
-    override fun onDestroy() {
-        super.onDestroy()
-
-        ordersListener?.remove()
-    }
+    // Start Firebase monitoring when the dashboard becomes active.
     override fun onStart() {
         super.onStart()
 
-        if (::db.isInitialized) {
-            firstOrdersSnapshot = true
-            listenForNewOrders()
-            firstFeedbackSnapshot = true
-            listenForNewFeedback()
+        if (::dashboardViewModel.isInitialized) {
+            dashboardViewModel.startOrderMonitoring()
+            dashboardViewModel.startFeedbackMonitoring()
         }
     }
 
+    // Stop Firebase monitoring when the dashboard is no longer active.
     override fun onStop() {
         super.onStop()
 
-        ordersListener?.remove()
-        ordersListener = null
-        feedbackListener?.remove()
-        feedbackListener = null
+        if (::dashboardViewModel.isInitialized) {
+            dashboardViewModel.stopMonitoring()
+        }
     }
-
 }

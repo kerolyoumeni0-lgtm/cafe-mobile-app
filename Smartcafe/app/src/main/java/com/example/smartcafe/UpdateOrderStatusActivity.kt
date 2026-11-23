@@ -4,29 +4,36 @@ package com.example.smartcafe
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
+import com.example.smartcafe.viewmodels.OrderViewModel
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import android.os.CountDownTimer
-import android.widget.EditText
-import java.util.Date
 
 class UpdateOrderStatusActivity : AppCompatActivity() {
 
-    private val db = FirebaseFirestore.getInstance()
+    // Connect the Activity to the ViewModel.
+    private lateinit var orderViewModel: OrderViewModel
+
+    // Store active preparation countdowns.
     private val activeTimers = mutableListOf<CountDownTimer>()
+
+    // Temporary callbacks for successful and failed operations.
+    private var pendingSuccessAction: (() -> Unit)? = null
+    private var pendingFailureAction: (() -> Unit)? = null
 
     private lateinit var ordersStatusContainer: LinearLayout
     private lateinit var txtEmptyStatus: TextView
 
-
+    // Available order statuses.
     private val statuses = arrayOf(
         "Pending",
         "Preparing",
@@ -38,79 +45,94 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_update_order_status)
 
+        // Initialise the ViewModel.
+        orderViewModel =
+            ViewModelProvider(this)[OrderViewModel::class.java]
+
         ordersStatusContainer =
             findViewById(R.id.ordersStatusContainer)
 
         txtEmptyStatus =
             findViewById(R.id.txtEmptyStatus)
 
-        loadOrders()
-    }
+        // Observe orders retrieved from Firestore.
+        orderViewModel.orders.observe(this) { orders ->
 
-    private fun loadOrders() {
+            ordersStatusContainer.removeAllViews()
 
+            if (orders.isEmpty()) {
+                txtEmptyStatus.visibility = View.VISIBLE
+                return@observe
+            }
+
+            txtEmptyStatus.visibility = View.GONE
+
+            // Display each order.
+            for (order in orders) {
+                displayOrder(
+                    order.id,
+                    order.customerName,
+                    order.customerEmail,
+                    order.totalPrice,
+                    order.status,
+                    order.preparationEndTime
+                )
+            }
+        }
+
+        // Observe operation messages.
+        orderViewModel.message.observe(this) { message ->
+
+            if (message.isNullOrEmpty()) return@observe
+
+            Toast.makeText(
+                this,
+                message,
+                Toast.LENGTH_SHORT
+            ).show()
+
+            when {
+                message.startsWith("Order status updated successfully") ||
+                        message.startsWith("Order is now being prepared") -> {
+
+                    pendingSuccessAction?.invoke()
+                    pendingSuccessAction = null
+                    pendingFailureAction = null
+                }
+
+                message.startsWith("Update failed") ||
+                        message.startsWith("Could not start timer") -> {
+
+                    pendingFailureAction?.invoke()
+                    pendingFailureAction = null
+                    pendingSuccessAction = null
+                }
+            }
+        }
+
+        // Check that an administrator is logged in.
         if (FirebaseAuth.getInstance().currentUser == null) {
+
             Toast.makeText(
                 this,
                 "Please log in first.",
                 Toast.LENGTH_LONG
             ).show()
+
+            finish()
             return
         }
 
-        db.collection("orders")
-            .get()
-            .addOnSuccessListener { result ->
-
-                ordersStatusContainer.removeAllViews()
-
-                if (result.isEmpty) {
-                    txtEmptyStatus.visibility = View.VISIBLE
-                    return@addOnSuccessListener
-                }
-
-                txtEmptyStatus.visibility = View.GONE
-
-                for (document in result) {
-
-                    val orderId = document.id
-
-                    val customerName =
-                        document.getString("customerName")
-                            ?: document.getString("customer_id")
-                            ?: "Unknown customer"
-
-                    val customerEmail =
-                        document.getString("customerEmail") ?: ""
-
-                    val totalPrice =
-                        (document.get("totalPrice") as? Number)
-                            ?.toDouble() ?: 0.0
-
-                    val currentStatus =
-                        document.getString("status") ?: "Pending"
-                    val preparationEndTime =
-                        document.getLong("preparationEndTime")
-
-                    displayOrder(
-                        orderId,
-                        customerName,
-                        customerEmail,
-                        totalPrice,
-                        currentStatus,
-                        preparationEndTime
-                    )
-                }
-            }
-            .addOnFailureListener { error ->
-                Toast.makeText(
-                    this,
-                    "Could not load orders: ${error.message}",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
+        // Load orders through the ViewModel.
+        loadOrders()
     }
 
+    // Retrieve orders through MVVM.
+    private fun loadOrders() {
+        orderViewModel.loadOrders()
+    }
+
+    // Display an individual order.
     private fun displayOrder(
         orderId: String,
         customerName: String,
@@ -138,9 +160,7 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
         }
 
         val email = TextView(this).apply {
-            text = "Email: ${
-                customerEmail.ifBlank { "Not provided" }
-            }"
+            text = "Email: ${customerEmail.ifBlank { "Not provided" }}"
             textSize = 14f
         }
 
@@ -153,14 +173,18 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
             text = "Current status: $currentStatus"
             textSize = 16f
         }
+
+        // Preparation time input.
         val preparationTimeInput = EditText(this).apply {
             hint = "Enter preparation time (minutes)"
             inputType = android.text.InputType.TYPE_CLASS_NUMBER
             setSingleLine(true)
         }
+
         val startPreparingButton = Button(this).apply {
             text = "Start Preparing"
         }
+
         val countdownText = TextView(this).apply {
             text = "Preparation timer not started"
             textSize = 18f
@@ -172,6 +196,7 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
             visibility = View.GONE
         }
 
+        // Order status dropdown.
         val statusSpinner = Spinner(this)
 
         val adapter = ArrayAdapter(
@@ -196,6 +221,7 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
             text = "Save New Status"
         }
 
+        // Update order status.
         updateButton.setOnClickListener {
 
             val newStatus =
@@ -216,10 +242,12 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
                 customerName,
                 customerEmail,
                 newStatus,
-                updateButton
+                updateButton,
+                "Save New Status"
             )
         }
 
+        // Add information to the card.
         card.addView(title)
         card.addView(customer)
         card.addView(email)
@@ -232,21 +260,24 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
         card.addView(countdownText)
         card.addView(readyButton)
 
-// READY BUTTON
+        // Mark the order as Ready.
         readyButton.setOnClickListener {
+
             updateStatus(
                 orderId,
                 customerName,
                 customerEmail,
                 "Ready",
-                readyButton
+                readyButton,
+                "Mark as Ready"
             )
         }
 
-// START PREPARING BUTTON
+        // Start the preparation timer.
         startPreparingButton.setOnClickListener {
 
-            val minutes = preparationTimeInput.text.toString().toLongOrNull()
+            val minutes =
+                preparationTimeInput.text.toString().toLongOrNull()
 
             if (minutes == null || minutes <= 0) {
                 Toast.makeText(
@@ -254,59 +285,52 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
                     "Please enter a valid preparation time.",
                     Toast.LENGTH_SHORT
                 ).show()
+
                 return@setOnClickListener
             }
 
-            val endTime = System.currentTimeMillis() + (minutes * 60 * 1000)
+            val endTime =
+                System.currentTimeMillis() + (minutes * 60 * 1000)
 
             startPreparingButton.isEnabled = false
             startPreparingButton.text = "Starting..."
 
-            db.collection("orders")
-                .document(orderId)
-                .update(
-                    mapOf(
-                        "status" to "Preparing",
-                        "preparationEndTime" to endTime
+            // Ask the ViewModel to update Firestore.
+            pendingSuccessAction = {
+
+                NotificationHelper(this)
+                    .showOrderStatusNotification(
+                        orderId,
+                        "Preparing"
                     )
-                )
-                .addOnSuccessListener {
 
-                    NotificationHelper(this)
-                        .showOrderStatusNotification(orderId, "Preparing")
-
-                    if (customerEmail.isNotBlank()) {
-                        sendCustomerEmail(
-                            customerEmail,
-                            customerName,
-                            orderId,
-                            "Preparing"
-                        )
-                    }
-
-                    Toast.makeText(
-                        this,
-                        "Order is now being prepared!",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    loadOrders()
+                if (customerEmail.isNotBlank()) {
+                    sendCustomerEmail(
+                        customerEmail,
+                        customerName,
+                        orderId,
+                        "Preparing"
+                    )
                 }
-                .addOnFailureListener { error ->
 
-                    startPreparingButton.isEnabled = true
-                    startPreparingButton.text = "Start Preparing"
+                loadOrders()
+            }
 
-                    Toast.makeText(
-                        this,
-                        "Could not start timer: ${error.message}",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
+            pendingFailureAction = {
+                startPreparingButton.isEnabled = true
+                startPreparingButton.text = "Start Preparing"
+            }
+
+            orderViewModel.startPreparingOrder(
+                orderId,
+                endTime
+            )
         }
 
-// RESTORE TIMER FOR ORDERS ALREADY PREPARING
-        if (currentStatus == "Preparing" && preparationEndTime != null) {
+        // Restore the countdown for an order already being prepared.
+        if (currentStatus == "Preparing" &&
+            preparationEndTime != null
+        ) {
 
             preparationTimeInput.visibility = View.GONE
             startPreparingButton.visibility = View.GONE
@@ -329,6 +353,8 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
 
         ordersStatusContainer.addView(card, params)
     }
+
+    // Start and manage the preparation countdown.
     private fun startCountdown(
         orderId: String,
         endTime: Long,
@@ -336,18 +362,23 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
         readyButton: Button,
         startPreparingButton: Button
     ) {
-        val remainingTime = endTime - System.currentTimeMillis()
+
+        val remainingTime =
+            endTime - System.currentTimeMillis()
 
         if (remainingTime <= 0) {
+
             countdownText.text = "Preparation time is finished!"
             readyButton.visibility = View.VISIBLE
             startPreparingButton.visibility = View.GONE
+
             return
         }
 
         val timer = object : CountDownTimer(remainingTime, 1000) {
 
             override fun onTick(millisUntilFinished: Long) {
+
                 val minutes = millisUntilFinished / 60000
                 val seconds = (millisUntilFinished % 60000) / 1000
 
@@ -359,7 +390,10 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
             }
 
             override fun onFinish() {
-                countdownText.text = "Time is up! Your order is ready to check."
+
+                countdownText.text =
+                    "Time is up! Your order is ready to check."
+
                 readyButton.visibility = View.VISIBLE
                 startPreparingButton.visibility = View.GONE
 
@@ -374,63 +408,64 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
         activeTimers.add(timer)
         timer.start()
     }
+
+    // Update an order's status through the ViewModel.
     private fun updateStatus(
         orderId: String,
         customerName: String,
         customerEmail: String,
         newStatus: String,
-        button: Button
+        button: Button,
+        originalButtonText: String
     ) {
 
         button.isEnabled = false
         button.text = "Updating..."
 
-        db.collection("orders")
-            .document(orderId)
-            .update("status", newStatus)
-            .addOnSuccessListener {
+        // Actions to perform after a successful update.
+        pendingSuccessAction = {
+
+            NotificationHelper(this)
+                .showOrderStatusNotification(
+                    orderId,
+                    newStatus
+                )
+
+            if (customerEmail.isNotBlank()) {
+
+                sendCustomerEmail(
+                    customerEmail,
+                    customerName,
+                    orderId,
+                    newStatus
+                )
+
+            } else {
 
                 Toast.makeText(
                     this,
-                    "Order status updated successfully!",
-                    Toast.LENGTH_SHORT
-                ).show()
-
-                // Existing Android order notification
-                NotificationHelper(this)
-                    .showOrderStatusNotification(orderId, newStatus)
-
-                // Prepare customer email
-                if (customerEmail.isNotBlank()) {
-                    sendCustomerEmail(
-                        customerEmail,
-                        customerName,
-                        orderId,
-                        newStatus
-                    )
-                } else {
-                    Toast.makeText(
-                        this,
-                        "Order updated, but customer email is missing.",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-
-                loadOrders()
-            }
-            .addOnFailureListener { error ->
-
-                button.isEnabled = true
-                button.text = "Save New Status"
-
-                Toast.makeText(
-                    this,
-                    "Update failed: ${error.message}",
+                    "Order updated, but customer email is missing.",
                     Toast.LENGTH_LONG
                 ).show()
             }
+
+            loadOrders()
+        }
+
+        // Restore the button if the update fails.
+        pendingFailureAction = {
+            button.isEnabled = true
+            button.text = originalButtonText
+        }
+
+        // Send the update request to the ViewModel.
+        orderViewModel.updateOrderStatus(
+            orderId,
+            newStatus
+        )
     }
 
+    // Prepare an email for the customer.
     private fun sendCustomerEmail(
         customerEmail: String,
         customerName: String,
@@ -441,11 +476,13 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
         if (!android.util.Patterns.EMAIL_ADDRESS
                 .matcher(customerEmail).matches()
         ) {
+
             Toast.makeText(
                 this,
                 "Customer email address is invalid.",
                 Toast.LENGTH_LONG
             ).show()
+
             return
         }
 
@@ -465,28 +502,47 @@ class UpdateOrderStatusActivity : AppCompatActivity() {
         """.trimIndent()
 
         val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+
             data = Uri.parse(
                 "mailto:${Uri.encode(customerEmail)}"
             )
 
-            putExtra(Intent.EXTRA_EMAIL, arrayOf(customerEmail))
+            putExtra(
+                Intent.EXTRA_EMAIL,
+                arrayOf(customerEmail)
+            )
+
             putExtra(Intent.EXTRA_SUBJECT, subject)
             putExtra(Intent.EXTRA_TEXT, message)
         }
 
         try {
+
             startActivity(
                 Intent.createChooser(
                     emailIntent,
                     "Send customer order update"
                 )
             )
+
         } catch (e: Exception) {
+
             Toast.makeText(
                 this,
                 "No email application is available.",
                 Toast.LENGTH_LONG
             ).show()
         }
+    }
+
+    // Cancel active timers when the Activity is destroyed.
+    override fun onDestroy() {
+        super.onDestroy()
+
+        activeTimers.forEach { timer ->
+            timer.cancel()
+        }
+
+        activeTimers.clear()
     }
 }

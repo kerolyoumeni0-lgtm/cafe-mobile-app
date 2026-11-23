@@ -9,17 +9,25 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.firebase.firestore.FirebaseFirestore
+import androidx.lifecycle.ViewModelProvider
+import com.example.smartcafe.models.MenuItem
+import com.example.smartcafe.viewmodels.MenuViewModel
 
 class ManageMenuActivity : AppCompatActivity() {
 
-    private val db = FirebaseFirestore.getInstance()
+    // Connect this Activity to the MenuViewModel.
+    private lateinit var menuViewModel: MenuViewModel
 
+    // Container used to display menu item cards.
     private lateinit var menuItemsContainer: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_manage_menu)
+
+        // Initialise the ViewModel.
+        menuViewModel =
+            ViewModelProvider(this)[MenuViewModel::class.java]
 
         menuItemsContainer =
             findViewById(R.id.menuItemsContainer)
@@ -27,149 +35,163 @@ class ManageMenuActivity : AppCompatActivity() {
         val btnAddMenuItem =
             findViewById<Button>(R.id.btnAddMenuItem)
 
+        // Open the Add Menu Item screen.
         btnAddMenuItem.setOnClickListener {
             startActivity(
                 Intent(this, AddEditMenuActivity::class.java)
             )
         }
+
+        // Observe the menu items returned by the ViewModel.
+        menuViewModel.menuItems.observe(this) { items ->
+            displayMenuItems(items)
+        }
+
+        // Observe messages from the ViewModel.
+        menuViewModel.message.observe(this) { message ->
+
+            if (message.isNullOrEmpty()) return@observe
+
+            Toast.makeText(
+                this,
+                message,
+                Toast.LENGTH_SHORT
+            ).show()
+
+            // Reload the list after a successful deletion.
+            if (message.startsWith("Menu item deleted successfully")) {
+                menuViewModel.loadAllMenuItems()
+            }
+        }
     }
 
+    // Refresh the menu whenever this screen becomes visible.
     override fun onResume() {
         super.onResume()
-        loadMenuItems()
+        menuViewModel.loadAllMenuItems()
     }
 
-    private fun loadMenuItems() {
+    // Display the menu items returned by the ViewModel.
+    private fun displayMenuItems(
+        items: List<Pair<String, MenuItem>>
+    ) {
 
-        db.collection("MenuItems")
-            .get()
-            .addOnSuccessListener { result ->
+        menuItemsContainer.removeAllViews()
 
-                menuItemsContainer.removeAllViews()
+        // Show a message if there are no menu items.
+        if (items.isEmpty()) {
 
-                if (result.isEmpty) {
-                    val emptyMessage = TextView(this).apply {
-                        text = "No menu items yet. Add your first item!"
-                        textSize = 15f
-                        gravity = Gravity.CENTER
-                        setPadding(20, 40, 20, 40)
-                    }
+            val emptyMessage = TextView(this).apply {
+                text = "No menu items yet. Add your first item!"
+                textSize = 15f
+                gravity = Gravity.CENTER
+                setPadding(20, 40, 20, 40)
+            }
 
-                    menuItemsContainer.addView(emptyMessage)
-                    return@addOnSuccessListener
+            menuItemsContainer.addView(emptyMessage)
+            return
+        }
+
+        // Create a card for every menu item.
+        for ((itemId, menuItem) in items) {
+
+            val itemCard = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(20, 20, 20, 20)
+
+                setBackgroundColor(
+                    android.graphics.Color.WHITE
+                )
+
+                val params = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+
+                params.bottomMargin = 16
+                layoutParams = params
+            }
+
+            // Display the menu item name.
+            val txtName = TextView(this).apply {
+                text = menuItem.name.ifEmpty { "Unnamed item" }
+                textSize = 19f
+                setTypeface(
+                    null,
+                    android.graphics.Typeface.BOLD
+                )
+            }
+
+            // Display the description.
+            val txtDescription = TextView(this).apply {
+                text = menuItem.description
+                textSize = 14f
+            }
+
+            // Display the price.
+            val txtPrice = TextView(this).apply {
+                text = "£${"%.2f".format(menuItem.price)}"
+                textSize = 16f
+            }
+
+            // Display availability.
+            val txtAvailability = TextView(this).apply {
+                text = if (menuItem.available) {
+                    "Available"
+                } else {
+                    "Unavailable"
                 }
 
-                for (document in result) {
+                textSize = 14f
+            }
 
-                    val itemId = document.id
-                    val name = document.getString("name") ?: "Unnamed item"
-                    val description =
-                        document.getString("description") ?: ""
-                    val price = document.getDouble("price") ?: 0.0
-                    val category =
-                        document.getString("category") ?: ""
-                    val available =
-                        document.getBoolean("available") ?: false
+            // Create a row for the Edit and Delete buttons.
+            val buttonRow = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+            }
 
-                    // Menu item card
-                    val itemCard = LinearLayout(this).apply {
-                        orientation = LinearLayout.VERTICAL
-                        setPadding(20, 20, 20, 20)
-                        setBackgroundColor(android.graphics.Color.WHITE)
+            // Edit button.
+            val btnEdit = Button(this).apply {
+                text = "Edit"
 
-                        val params = LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT
-                        )
-                        params.bottomMargin = 16
-                        layoutParams = params
-                    }
+                setOnClickListener {
+                    val intent = Intent(
+                        this@ManageMenuActivity,
+                        AddEditMenuActivity::class.java
+                    )
 
-                    val txtName = TextView(this).apply {
-                        text = name
-                        textSize = 19f
-                        setTypeface(null, android.graphics.Typeface.BOLD)
-                    }
-
-                    val txtDescription = TextView(this).apply {
-                        text = description
-                        textSize = 14f
-                    }
-
-                    val txtPrice = TextView(this).apply {
-                        text = "£${"%.2f".format(price)}"
-                        textSize = 16f
-                    }
-
-                    val txtAvailability = TextView(this).apply {
-                        text = if (available) "Available" else "Unavailable"
-                        textSize = 14f
-                    }
-
-                    val buttonRow = LinearLayout(this).apply {
-                        orientation = LinearLayout.HORIZONTAL
-                    }
-
-                    val btnEdit = Button(this).apply {
-                        text = "Edit"
-                        setOnClickListener {
-                            val intent = Intent(
-                                this@ManageMenuActivity,
-                                AddEditMenuActivity::class.java
-                            )
-                            intent.putExtra("itemId", itemId)
-                            startActivity(intent)
-                        }
-                    }
-
-                    val btnDelete = Button(this).apply {
-                        text = "Delete"
-                        setOnClickListener {
-                            deleteMenuItem(itemId)
-                        }
-                    }
-
-                    buttonRow.addView(btnEdit)
-                    buttonRow.addView(btnDelete)
-
-                    itemCard.addView(txtName)
-                    itemCard.addView(txtDescription)
-                    itemCard.addView(txtPrice)
-                    itemCard.addView(txtAvailability)
-                    itemCard.addView(buttonRow)
-
-                    menuItemsContainer.addView(itemCard)
+                    intent.putExtra("itemId", itemId)
+                    startActivity(intent)
                 }
             }
-            .addOnFailureListener { error ->
-                Toast.makeText(
-                    this,
-                    "Could not load menu: ${error.localizedMessage}",
-                    Toast.LENGTH_LONG
-                ).show()
+
+            // Delete button.
+            val btnDelete = Button(this).apply {
+                text = "Delete"
+
+                setOnClickListener {
+                    deleteMenuItem(itemId)
+                }
             }
+
+            // Add buttons to their row.
+            buttonRow.addView(btnEdit)
+            buttonRow.addView(btnDelete)
+
+            // Add information to the card.
+            itemCard.addView(txtName)
+            itemCard.addView(txtDescription)
+            itemCard.addView(txtPrice)
+            itemCard.addView(txtAvailability)
+            itemCard.addView(buttonRow)
+
+            // Display the completed card.
+            menuItemsContainer.addView(itemCard)
+        }
     }
 
+    // Ask the ViewModel to delete a menu item.
     private fun deleteMenuItem(itemId: String) {
-
-        db.collection("MenuItems")
-            .document(itemId)
-            .delete()
-            .addOnSuccessListener {
-                Toast.makeText(
-                    this,
-                    "Menu item deleted successfully",
-                    Toast.LENGTH_SHORT
-                ).show()
-
-                loadMenuItems()
-            }
-            .addOnFailureListener { error ->
-                Toast.makeText(
-                    this,
-                    "Delete failed: ${error.localizedMessage}",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
+        menuViewModel.deleteMenuItem(itemId)
     }
 }
