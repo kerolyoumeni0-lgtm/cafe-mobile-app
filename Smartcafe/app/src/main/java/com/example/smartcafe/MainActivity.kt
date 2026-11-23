@@ -93,7 +93,7 @@ class MainActivity : AppCompatActivity() {
                             auth.signOut()
                             return@addOnSuccessListener
                         }
-
+//kerol
                         // Check the user's administrator role in Firestore.
                         FirebaseFirestore.getInstance()
                             .collection("Users")
