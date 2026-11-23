@@ -1,11 +1,10 @@
 
 
-
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8F7F3"
+    android:background="@drawable/cafe_background"
     android:fillViewport="true"
     tools:context=".DashboardActivity">
 
@@ -13,32 +12,118 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="20dp"
+        android:background="#E6F8F7F3">
 
+        <!-- Second row of dashboard statistics -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp">
+
+            <!-- Total sales card -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="120dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="#FFFFFF"
+                android:elevation="4dp"
+                android:padding="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="💷"
+                    android:textSize="25sp" />
+
+                <TextView
+                    android:id="@+id/txtTotalSalesHome"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="£0.00"
+                    android:textSize="23sp"
+                    android:textStyle="bold"
+                    android:textColor="#3E2723" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Total Sales"
+                    android:textSize="13sp"
+                    android:textColor="#795548" />
+            </LinearLayout>
+
+            <!-- Completed orders card -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="120dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="#FFFFFF"
+                android:elevation="4dp"
+                android:padding="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="✅"
+                    android:textSize="25sp" />
+
+                <TextView
+                    android:id="@+id/txtCompletedOrdersHome"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textSize="26sp"
+                    android:textStyle="bold"
+                    android:textColor="#3E2723" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Completed Orders"
+                    android:textSize="13sp"
+                    android:textColor="#795548" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+
+        <!-- Café branding -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="☕ Smart Café"
+            android:text="☕ SMART CAFÉ"
             android:textSize="30sp"
             android:textStyle="bold"
             android:textColor="#3E2723"
-            android:gravity="center" />
+            android:gravity="center"
+            android:layout_marginTop="15dp" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Admin Dashboard"
-            android:textSize="21sp"
+            android:text="ADMIN HOME"
+            android:textSize="15sp"
+            android:textStyle="bold"
             android:textColor="#795548"
             android:gravity="center"
-            android:layout_marginTop="8dp" />
+            android:letterSpacing="0.15"
+            android:layout_marginTop="6dp" />
 
+        <!-- Welcome section -->
         <TextView
             android:id="@+id/txtWelcome"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Welcome, Administrator!"
-            android:textSize="18sp"
+            android:textSize="23sp"
             android:textStyle="bold"
             android:textColor="#3E2723"
             android:layout_marginTop="35dp" />
@@ -46,16 +131,120 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Manage your café operations below"
-            android:textColor="#795548"
+            android:text="Your café, your dashboard. Manage your daily operations here."
+            android:textSize="14sp"
+            android:textColor="#5D4037"
             android:layout_marginTop="8dp" />
+
+        <!-- Dashboard statistics -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Today's Overview"
+            android:textSize="21sp"
+            android:textStyle="bold"
+            android:textColor="#3E2723"
+            android:layout_marginTop="28dp"
+            android:layout_marginBottom="12dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <!-- Total orders card -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="120dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="#FFFFFF"
+                android:elevation="4dp"
+                android:padding="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🛍"
+                    android:textSize="25sp" />
+
+                <TextView
+                    android:id="@+id/txtTotalOrdersHome"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textSize="26sp"
+                    android:textStyle="bold"
+                    android:textColor="#3E2723" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Total Orders"
+                    android:textSize="13sp"
+                    android:textColor="#795548" />
+            </LinearLayout>
+
+            <!-- Pending orders card -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="120dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="#FFFFFF"
+                android:elevation="4dp"
+                android:padding="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="⏳"
+                    android:textSize="25sp" />
+
+                <TextView
+                    android:id="@+id/txtPendingOrdersHome"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textSize="26sp"
+                    android:textStyle="bold"
+                    android:textColor="#3E2723" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Pending Orders"
+                    android:textSize="13sp"
+                    android:textColor="#795548" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+
+
+        <!-- Management section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Café Management"
+            android:textSize="21sp"
+            android:textStyle="bold"
+            android:textColor="#3E2723"
+            android:layout_marginTop="35dp"
+            android:layout_marginBottom="12dp" />
 
         <Button
             android:id="@+id/btnManageMenu"
             android:layout_width="match_parent"
             android:layout_height="65dp"
-            android:layout_marginTop="35dp"
-            android:text="MANAGE MENU"
+            android:layout_marginTop="8dp"
+            android:text="☕  MANAGE MENU"
+            android:textSize="16sp"
+            android:textStyle="bold"
             android:textColor="#FFFFFF"
             android:backgroundTint="#5D4037" />
 
@@ -63,8 +252,10 @@
             android:id="@+id/btnManageOrders"
             android:layout_width="match_parent"
             android:layout_height="65dp"
-            android:layout_marginTop="18dp"
-            android:text="MANAGE ORDERS"
+            android:layout_marginTop="12dp"
+            android:text="🛍  MANAGE ORDERS"
+            android:textSize="16sp"
+            android:textStyle="bold"
             android:textColor="#FFFFFF"
             android:backgroundTint="#795548" />
 
@@ -72,30 +263,45 @@
             android:id="@+id/btnUpdateStatus"
             android:layout_width="match_parent"
             android:layout_height="65dp"
-            android:layout_marginTop="18dp"
-            android:text="UPDATE ORDER STATUS"
+            android:layout_marginTop="12dp"
+            android:text="📋  UPDATE ORDER STATUS"
+            android:textSize="16sp"
+            android:textStyle="bold"
             android:textColor="#FFFFFF"
             android:backgroundTint="#8D6E63" />
-
 
         <Button
             android:id="@+id/btnCustomerFeedback"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Customer Feedback"
-            android:layout_marginTop="12dp" />
+            android:layout_height="65dp"
+            android:layout_marginTop="12dp"
+            android:text="⭐  CUSTOMER FEEDBACK"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#795548" />
+
         <Button
             android:id="@+id/btnSalesAnalytics"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Sales &amp; Analytics"
-            android:layout_marginTop="12dp" />
+            android:layout_height="65dp"
+            android:layout_marginTop="12dp"
+            android:text="📊  SALES &amp; ANALYTICS"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#5D4037" />
+
+        <!-- Logout -->
         <Button
             android:id="@+id/btnLogout"
             android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:layout_marginTop="45dp"
+            android:layout_height="58dp"
+            android:layout_marginTop="35dp"
+            android:layout_marginBottom="20dp"
             android:text="LOGOUT"
+            android:textSize="16sp"
+            android:textStyle="bold"
             android:textColor="#FFFFFF"
             android:backgroundTint="#B71C1C" />
 

@@ -30,11 +30,12 @@ class DashboardActivity : AppCompatActivity() {
     // Called when the dashboard screen is first created.
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+// Initialise Firebase Authentication and Cloud Firestore
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
-        // Only signed-in users can access this screen
+// Check whether an administrator is currently signed in
+// If nobody is signed in, redirect to the login screen
         if (auth.currentUser == null) {
             startActivity(Intent(this, MainActivity::class.java))
             finish()
@@ -138,6 +139,42 @@ class DashboardActivity : AppCompatActivity() {
                 }
 
                 if (snapshots == null) return@addSnapshotListener
+                // Update the dashboard order statistics using Firestore data
+                val totalOrders = snapshots.size()
+
+                val pendingOrders = snapshots.documents.count { document ->
+                    document.getString("status").equals("Pending", ignoreCase = true)
+                }
+                // Count completed orders and calculate their total sales
+                var completedOrders = 0
+                var totalSales = 0.0
+
+                for (document in snapshots.documents) {
+
+                    val status = document.getString("status") ?: ""
+
+                    if (status.equals("Completed", ignoreCase = true)) {
+
+                        completedOrders++
+
+                        val price = (document.get("totalPrice") as? Number)?.toDouble()
+
+                        if (price != null && price.isFinite() && price >= 0) {
+                            totalSales += price
+                        }
+                    }
+                }
+
+// Display the latest statistics on the dashboard
+                txtTotalOrdersHome.text = totalOrders.toString()
+                txtPendingOrdersHome.text = pendingOrders.toString()
+                // Display completed orders and total sales
+                txtCompletedOrdersHome.text = completedOrders.toString()
+                txtTotalSalesHome.text = String.format(
+                    java.util.Locale.UK,
+                    "£%.2f",
+                    totalSales
+                )
 
                 if (firstOrdersSnapshot) {
                     firstOrdersSnapshot = false
