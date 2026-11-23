@@ -1,12 +1,11 @@
 
-
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="#F8F7F3"
+    android:background="#101010"
     tools:context=".MainActivity">
 
     <LinearLayout
@@ -28,8 +27,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Smart Café"
-            android:textColor="#3E2723"
-            android:textSize="32sp"
+            android:textColor="#FFFFFF"
+            android:textSize="34sp"
             android:textStyle="bold" />
 
         <!-- Login title -->
@@ -37,25 +36,31 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="35dp"
+            android:layout_marginBottom="30dp"
             android:text="Admin Login"
-            android:textColor="#795548"
-            android:textSize="20sp" />
+            android:textColor="#D6A85F"
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
         <!-- Email label -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Email Address"
-            android:textColor="#3E2723"
-            android:textStyle="bold" />
+            android:textColor="#F5E6C8"
+            android:textStyle="bold"
+            android:textSize="14sp" />
 
         <!-- Email field -->
         <EditText
             android:id="@+id/edtEmail"
             android:layout_width="match_parent"
             android:layout_height="55dp"
+            android:layout_marginTop="6dp"
+            android:backgroundTint="#C49A55"
             android:hint="Enter your email"
+            android:textColorHint="#999999"
+            android:textColor="#FFFFFF"
             android:inputType="textEmailAddress"
             android:padding="14dp"
             android:singleLine="true" />
@@ -64,17 +69,22 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="18dp"
             android:text="Password"
-            android:textColor="#3E2723"
-            android:textStyle="bold" />
+            android:textColor="#F5E6C8"
+            android:textStyle="bold"
+            android:textSize="14sp" />
 
         <!-- Password field -->
         <EditText
             android:id="@+id/edtPassword"
             android:layout_width="match_parent"
             android:layout_height="55dp"
+            android:layout_marginTop="6dp"
+            android:backgroundTint="#C49A55"
             android:hint="Enter your password"
+            android:textColorHint="#999999"
+            android:textColor="#FFFFFF"
             android:inputType="textPassword"
             android:padding="14dp"
             android:singleLine="true" />
@@ -107,11 +117,12 @@
         <Button
             android:id="@+id/btnLogin"
             android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:layout_marginTop="30dp"
-            android:backgroundTint="#5D4037"
+            android:layout_height="58dp"
+            android:layout_marginTop="32dp"
+            android:backgroundTint="#B88643"
             android:text="LOGIN"
             android:textColor="#FFFFFF"
+            android:textSize="15sp"
             android:textStyle="bold" />
 
         <!-- Register link -->
@@ -119,12 +130,13 @@
             android:id="@+id/txtRegister"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="22dp"
+            android:layout_marginTop="25dp"
             android:clickable="true"
             android:focusable="true"
             android:text="Don't have an account? Register"
-            android:textColor="#5D4037"
-            android:textSize="15sp" />
+            android:textColor="#D6A85F"
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
 
     </LinearLayout>
