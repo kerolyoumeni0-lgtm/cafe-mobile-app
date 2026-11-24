@@ -12,22 +12,25 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
+import androidx.lifecycle.ViewModelProvider
+import com.example.smartcafe.viewmodels.AuthViewModel
 import java.io.File
 import java.io.FileOutputStream
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var auth: FirebaseAuth
+    private lateinit var authViewModel: AuthViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
+        showRegistrationMessage(intent)
 
-        // Connect to Firebase Authentication.
-        auth = FirebaseAuth.getInstance()
+        // Connect the Activity to the AuthViewModel.
+        authViewModel = ViewModelProvider(this)
+            .get(AuthViewModel::class.java)
 
         // Connect the login screen components.
         val edtEmail = findViewById<EditText>(R.id.edtEmail)
@@ -39,36 +42,81 @@ class MainActivity : AppCompatActivity() {
         val txtAdminPolicy = findViewById<TextView>(R.id.txtAdminPolicy)
         val chkAcceptPolicy = findViewById<CheckBox>(R.id.chkAcceptPolicy)
 
-        // Open the Administrator Policy PDF when clicked.
+        // Observe successful administrator authentication.
+        authViewModel.adminUser.observe(this) { admin ->
+
+            if (admin != null) {
+
+                Toast.makeText(
+                    this,
+                    "Admin login successful!",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                // Open the Admin Dashboard.
+                val intent = Intent(
+                    this,
+                    DashboardActivity::class.java
+                )
+
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_CLEAR_TASK
+
+                startActivity(intent)
+            }
+        }
+
+        // Observe login errors and messages.
+        authViewModel.message.observe(this) { message ->
+
+            if (!message.isNullOrEmpty()) {
+
+                Toast.makeText(
+                    this,
+                    message,
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+
+        // Open the Administrator Policy PDF.
         txtAdminPolicy.setOnClickListener {
             openAdminPolicy()
         }
 
         // Navigate to the registration screen.
         txtRegister.setOnClickListener {
-            val intent = Intent(this, RegisterActivity::class.java)
+
+            val intent = Intent(
+                this,
+                RegisterActivity::class.java
+            )
+
             startActivity(intent)
         }
 
         // Handle administrator login.
         btnLogin.setOnClickListener {
 
-            // Check that the administrator has accepted the policy.
+            // Check whether the administrator accepted the policy.
             if (!chkAcceptPolicy.isChecked) {
+
                 Toast.makeText(
                     this,
                     "Please read and accept the Administrator Policy.",
                     Toast.LENGTH_LONG
                 ).show()
+
                 return@setOnClickListener
             }
 
-            // Retrieve the email and password entered by the user.
+            // Retrieve the email and password.
             val email = edtEmail.text.toString().trim()
             val password = edtPassword.text.toString().trim()
 
-            // Check that both login fields have been completed.
+            // Validate the login fields.
             if (email.isEmpty() || password.isEmpty()) {
+
                 Toast.makeText(
                     this,
                     "Please enter your email and password",
@@ -77,87 +125,8 @@ class MainActivity : AppCompatActivity() {
 
             } else {
 
-                // Sign in using Firebase Authentication.
-                auth.signInWithEmailAndPassword(email, password)
-                    .addOnSuccessListener { result ->
-
-                        // Retrieve the unique Firebase user ID.
-                        val userId = result.user?.uid
-
-                        if (userId == null) {
-                            Toast.makeText(
-                                this,
-                                "Could not verify your account.",
-                                Toast.LENGTH_LONG
-                            ).show()
-                            auth.signOut()
-                            return@addOnSuccessListener
-                        }
-//kerol
-                        //jamla
-                        // Check the user's administrator role in Firestore.
-                        FirebaseFirestore.getInstance()
-                            .collection("Users")
-                            .document(userId)
-                            .get()
-                            .addOnSuccessListener { document ->
-
-                                val role = document.getString("role")
-
-                                // Allow access only to approved administrators.
-                                if (role == "admin") {
-
-                                    Toast.makeText(
-                                        this,
-                                        "Admin login successful!",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-
-                                    // Open the Admin Dashboard.
-                                    val intent = Intent(
-                                        this,
-                                        DashboardActivity::class.java
-                                    )
-
-                                    intent.flags =
-                                        Intent.FLAG_ACTIVITY_NEW_TASK or
-                                                Intent.FLAG_ACTIVITY_CLEAR_TASK
-
-                                    startActivity(intent)
-
-                                } else {
-
-                                    // Sign out users without administrator approval.
-                                    auth.signOut()
-
-                                    Toast.makeText(
-                                        this,
-                                        "Access denied. Admin account required.",
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                }
-                            }
-                            .addOnFailureListener { error ->
-
-                                // Sign out if the administrator role cannot be checked.
-                                auth.signOut()
-
-                                Toast.makeText(
-                                    this,
-                                    "Could not verify admin role: ${error.message}",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            }
-                    }
-                    .addOnFailureListener { error ->
-
-                        // Display an error if Firebase login fails.
-                        Toast.makeText(
-                            this,
-                            "Login failed: ${error.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
+                // Authenticate through the AuthViewModel.
+                authViewModel.loginAdmin(email, password)
             }
         }
     }
@@ -166,11 +135,13 @@ class MainActivity : AppCompatActivity() {
     private fun openAdminPolicy() {
 
         try {
+
             // Create a file inside the app's internal files directory.
             val policyFile = File(filesDir, "AdminPolicy.pdf")
 
-            // Copy the PDF from the assets folder into internal storage.
+            // Copy the PDF from assets into internal storage.
             assets.open("AdminPolicy.pdf").use { input ->
+
                 FileOutputStream(policyFile).use { output ->
                     input.copyTo(output)
                 }
@@ -185,8 +156,12 @@ class MainActivity : AppCompatActivity() {
 
             // Open the PDF using an installed PDF viewer.
             val intent = Intent(Intent.ACTION_VIEW).apply {
+
                 setDataAndType(policyUri, "application/pdf")
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
+                addFlags(
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
             }
 
             startActivity(intent)
@@ -200,5 +175,23 @@ class MainActivity : AppCompatActivity() {
                 Toast.LENGTH_LONG
             ).show()
         }
+    }
+    // Display registration success message on the login screen.
+    private fun showRegistrationMessage(intent: Intent?) {
+        val message = intent?.getStringExtra("registration_success")
+
+        if (!message.isNullOrEmpty()) {
+            Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+
+            // Prevent the same message from appearing again.
+            intent.removeExtra("registration_success")
+        }
+    }
+
+    // Handle the message when MainActivity is already open.
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        showRegistrationMessage(intent)
     }
 }
